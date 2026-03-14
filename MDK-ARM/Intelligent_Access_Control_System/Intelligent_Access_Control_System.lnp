@@ -1,0 +1,23 @@
+--cpu Cortex-M3
+"intelligent_access_control_system\startup_stm32f103xb.o"
+"intelligent_access_control_system\main.o"
+"intelligent_access_control_system\gpio.o"
+"intelligent_access_control_system\stm32f1xx_it.o"
+"intelligent_access_control_system\stm32f1xx_hal_msp.o"
+"intelligent_access_control_system\stm32f1xx_hal_gpio_ex.o"
+"intelligent_access_control_system\stm32f1xx_hal.o"
+"intelligent_access_control_system\stm32f1xx_hal_rcc.o"
+"intelligent_access_control_system\stm32f1xx_hal_rcc_ex.o"
+"intelligent_access_control_system\stm32f1xx_hal_gpio.o"
+"intelligent_access_control_system\stm32f1xx_hal_dma.o"
+"intelligent_access_control_system\stm32f1xx_hal_cortex.o"
+"intelligent_access_control_system\stm32f1xx_hal_pwr.o"
+"intelligent_access_control_system\stm32f1xx_hal_flash.o"
+"intelligent_access_control_system\stm32f1xx_hal_flash_ex.o"
+"intelligent_access_control_system\stm32f1xx_hal_exti.o"
+"intelligent_access_control_system\system_stm32f1xx.o"
+"intelligent_access_control_system\oled.o"
+--strict --scatter "Intelligent_Access_Control_System\Intelligent_Access_Control_System.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "Intelligent_Access_Control_System.map" -o Intelligent_Access_Control_System\Intelligent_Access_Control_System.axf
