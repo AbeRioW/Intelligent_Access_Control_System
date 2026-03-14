@@ -733,6 +733,11 @@
               <FileType>1</FileType>
               <FilePath>..\App\RC522.c</FilePath>
             </File>
+            <File>
+              <FileName>flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\App\flash.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

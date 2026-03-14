@@ -27,16 +27,22 @@
 #include "oled.h"
 #include "Matrix_Keyboard.h"
 #include "RC522.h"
+#include "flash.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+typedef enum {
+    MODE_MAIN,
+    MODE_PIN
+} SystemMode;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define MAX_NFC_RETRY 3
+#define MAX_PIN_RETRY 3
+#define RELAY_ON_TIME 5000
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -47,18 +53,121 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+SystemMode currentMode = MODE_MAIN;
+uint8_t nfcRetryCount = 0;
+uint8_t pinRetryCount = 0;
+uint16_t currentPin = 0;
+uint8_t pinIndex = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+void Relay_On(void);
+void Relay_Off(void);
+void Beep_On(void);
+void Beep_Off(void);
+void ClearPIN(void);
+void CheckPIN(void);
+uint8_t KeyToDigit(uint8_t key);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void Relay_On(void)
+{
+    HAL_GPIO_WritePin(LAY_GPIO_Port, LAY_Pin, GPIO_PIN_SET);
+}
 
+void Relay_Off(void)
+{
+    HAL_GPIO_WritePin(LAY_GPIO_Port, LAY_Pin, GPIO_PIN_RESET);
+}
+
+void Beep_On(void)
+{
+    HAL_GPIO_WritePin(BEEP_GPIO_Port, BEEP_Pin, GPIO_PIN_RESET);
+}
+
+void Beep_Off(void)
+{
+    HAL_GPIO_WritePin(BEEP_GPIO_Port, BEEP_Pin, GPIO_PIN_SET);
+}
+
+void ClearPIN(void)
+{
+    currentPin = 0;
+    pinIndex = 0;
+    OLED_ShowString(32, 8, (uint8_t*)"    ", 8, 1);
+    OLED_Refresh();
+}
+
+void CheckPIN(void)
+{
+    uint16_t storedPin = 0; // 直接使用默认值
+    // 显示调试信息
+//    char debugBuf[32];
+//    sprintf(debugBuf, "C:%d S:%d", currentPin, storedPin);
+//    OLED_ShowString(0, 24, (uint8_t*)debugBuf, 8, 1);
+//    OLED_Refresh();
+//    HAL_Delay(2000);
+    
+    if(currentPin == storedPin)
+    {
+        Relay_On();
+        OLED_ShowString(0, 24, (uint8_t*)"Success!", 8, 1);
+        OLED_Refresh();
+        HAL_Delay(RELAY_ON_TIME);
+        Relay_Off();
+        OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+        OLED_Refresh();
+        currentMode = MODE_MAIN;
+        pinRetryCount = 0;
+    }
+    else
+    {
+        pinRetryCount++;
+        if(pinRetryCount >= MAX_PIN_RETRY)
+        {
+            Beep_On();
+            OLED_ShowString(0, 24, (uint8_t*)"Alarm!", 8, 1);
+            OLED_Refresh();
+            HAL_Delay(3000);
+            Beep_Off();
+            OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+            OLED_Refresh();
+            currentMode = MODE_MAIN;
+            pinRetryCount = 0;
+        }
+        else
+        {
+            OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
+            OLED_Refresh();
+            HAL_Delay(1000);
+            OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+            OLED_Refresh();
+        }
+        ClearPIN();
+    }
+}
+
+uint8_t KeyToDigit(uint8_t key)
+{
+    switch(key)
+    {
+        case 1: return 1;
+        case 2: return 2;
+        case 3: return 3;
+        case 5: return 4;
+        case 6: return 5;
+        case 7: return 6;
+        case 9: return 7;
+        case 10: return 8;
+        case 11: return 9;
+        case 14: return 0;
+        default: return 0xFF; // 无效按键
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -96,8 +205,11 @@ int main(void)
   OLED_Init();
   Matrix_Keyboard_Init();
   PCD_Init();
-  OLED_ShowString(0,0,(uint8_t*)"Key: ",8,1);
-  OLED_ShowString(0,2,(uint8_t*)"NFC: ",8,1);
+  Flash_Init();
+  
+  OLED_ShowString(0, 0, (uint8_t*)"NFC Mode", 8, 1);
+  OLED_ShowString(0, 8, (uint8_t*)"NFC: ", 8, 1);
+  OLED_ShowString(0, 16, (uint8_t*)"Press KEY8 for PIN", 8, 1);
   OLED_Refresh();
   /* USER CODE END 2 */
 
@@ -109,26 +221,112 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     uint8_t key = Matrix_Keyboard_Scan();
-    if(key != KEY_NONE)
+    
+    if(key == 8) // KEY8进入PIN码模式
     {
-      char buf[4];
-      sprintf(buf, "%2d", key);
-      OLED_ShowString(32,0,(uint8_t*)buf,8,1);
-      OLED_Refresh();
+        currentMode = MODE_PIN;
+        currentPin = 0;
+        pinIndex = 0;
+        OLED_ShowString(0, 0, (uint8_t*)"PIN Mode", 8, 1);
+        OLED_ShowString(0, 8, (uint8_t*)"PIN: ", 8, 1);
+        OLED_ShowString(32, 8, (uint8_t*)"    ", 8, 1);
+        OLED_ShowString(0, 16, (uint8_t*)"Enter 4-digit PIN", 8, 1);
+        OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+        OLED_Refresh();
     }
     
-    /* 读取NFC卡 */
-    uint8_t cardType[2];
-    uint8_t cardID[4];
-    if(PCD_Request(PICC_REQIDL, cardType) == PCD_OK)
+    if(currentMode == MODE_MAIN)
     {
-      if(PCD_Anticoll(cardID) == PCD_OK)
-      {
-        char idBuf[16];
-        sprintf(idBuf, "%02X%02X%02X%02X", cardID[0], cardID[1], cardID[2], cardID[3]);
-        OLED_ShowString(32,2,(uint8_t*)idBuf,8,1);
-        OLED_Refresh();
-      }
+        /* 读取NFC卡 */
+        uint8_t cardType[2];
+        uint8_t cardID[4];
+        if(PCD_Request(PICC_REQIDL, cardType) == PCD_OK)
+        {
+            if(PCD_Anticoll(cardID) == PCD_OK)
+            {
+                uint32_t nfcID = ((uint32_t)cardID[0] << 24) | ((uint32_t)cardID[1] << 16) | ((uint32_t)cardID[2] << 8) | cardID[3];
+                uint32_t storedID = Flash_ReadNFCID();
+                
+                char idBuf[16];
+                sprintf(idBuf, "%08X", nfcID);
+                OLED_ShowString(32, 8, (uint8_t*)idBuf, 8, 1);
+                OLED_Refresh();
+                
+                if(nfcID == storedID && storedID != 0)
+                {
+                    Relay_On();
+                    OLED_ShowString(0, 16, (uint8_t*)"Access Granted", 8, 1);
+                    OLED_Refresh();
+                    HAL_Delay(RELAY_ON_TIME);
+                    Relay_Off();
+                    OLED_ShowString(0, 16, (uint8_t*)"                ", 8, 1);
+                    OLED_Refresh();
+                    nfcRetryCount = 0;
+                }
+                else
+                {
+                    nfcRetryCount++;
+                    if(nfcRetryCount >= MAX_NFC_RETRY)
+                    {
+                        Beep_On();
+                        OLED_ShowString(0, 16, (uint8_t*)"Alarm!", 8, 1);
+                        OLED_Refresh();
+                        HAL_Delay(3000);
+                        Beep_Off();
+                        OLED_ShowString(0, 16, (uint8_t*)"                ", 8, 1);
+                        OLED_Refresh();
+                        nfcRetryCount = 0;
+                    }
+                    else
+                    {
+                        OLED_ShowString(0, 16, (uint8_t*)"Access Denied", 8, 1);
+                        OLED_Refresh();
+                        HAL_Delay(1000);
+                        OLED_ShowString(0, 16, (uint8_t*)"                ", 8, 1);
+                        OLED_Refresh();
+                    }
+                }
+            }
+        }
+    }
+    else if(currentMode == MODE_PIN)
+    {
+        if(key != KEY_NONE)
+        {
+            uint8_t digit = KeyToDigit(key);
+            if(digit != 0xFF && pinIndex < 4)
+            {
+                currentPin = currentPin * 10 + digit;
+                pinIndex++;
+                
+                char pinBuf[5];
+                switch(pinIndex)
+                {
+                    case 1:
+                        sprintf(pinBuf, "%d", currentPin);
+                        break;
+                    case 2:
+                        sprintf(pinBuf, "%02d", currentPin);
+                        break;
+                    case 3:
+                        sprintf(pinBuf, "%03d", currentPin);
+                        break;
+                    case 4:
+                        sprintf(pinBuf, "%04d", currentPin);
+                        break;
+                    default:
+                        pinBuf[0] = '\0';
+                        break;
+                }
+                OLED_ShowString(32, 8, (uint8_t*)pinBuf, 8, 1);
+                OLED_Refresh();
+                
+                if(pinIndex == 4)
+                {
+                    CheckPIN();
+                }
+            }
+        }
     }
     
     HAL_Delay(100);
@@ -193,7 +391,8 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
-#ifdef USE_FULL_ASSERT
+
+#ifdef  USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
@@ -204,8 +403,8 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* User can add his own implementation to report the file name and line number, */
+  /* ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

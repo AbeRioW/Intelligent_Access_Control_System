@@ -177,6 +177,9 @@ uint8_t Matrix_Keyboard_Scan(void)
   }
   
   /* 恢复所有列为高电平 */
+  HAL_GPIO_WritePin(LINE1_GPIO_Port, LINE1_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LINE2_GPIO_Port, LINE2_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LINE3_GPIO_Port, LINE3_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(LINE4_GPIO_Port, LINE4_Pin, GPIO_PIN_SET);
   
   return key_value;

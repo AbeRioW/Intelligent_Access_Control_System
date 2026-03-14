@@ -33,3 +33,4 @@ intelligent_access_control_system\main.o: ../Core/Inc/gpio.h
 intelligent_access_control_system\main.o: ../App/oled.h
 intelligent_access_control_system\main.o: ../App/Matrix_Keyboard.h
 intelligent_access_control_system\main.o: ../App/RC522.h
+intelligent_access_control_system\main.o: ../App/flash.h
