@@ -18,12 +18,15 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "spi.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "oled.h"
 #include "Matrix_Keyboard.h"
+#include "RC522.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -87,10 +90,14 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_USART3_UART_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   OLED_Init();
   Matrix_Keyboard_Init();
+  PCD_Init();
   OLED_ShowString(0,0,(uint8_t*)"Key: ",8,1);
+  OLED_ShowString(0,2,(uint8_t*)"NFC: ",8,1);
   OLED_Refresh();
   /* USER CODE END 2 */
 
@@ -109,6 +116,21 @@ int main(void)
       OLED_ShowString(32,0,(uint8_t*)buf,8,1);
       OLED_Refresh();
     }
+    
+    /* 读取NFC卡 */
+    uint8_t cardType[2];
+    uint8_t cardID[4];
+    if(PCD_Request(PICC_REQIDL, cardType) == PCD_OK)
+    {
+      if(PCD_Anticoll(cardID) == PCD_OK)
+      {
+        char idBuf[16];
+        sprintf(idBuf, "%02X%02X%02X%02X", cardID[0], cardID[1], cardID[2], cardID[3]);
+        OLED_ShowString(32,2,(uint8_t*)idBuf,8,1);
+        OLED_Refresh();
+      }
+    }
+    
     HAL_Delay(100);
   }
   /* USER CODE END 3 */

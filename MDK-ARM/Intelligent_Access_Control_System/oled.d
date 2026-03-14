@@ -27,6 +27,8 @@ intelligent_access_control_system\oled.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/st
 intelligent_access_control_system\oled.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
 intelligent_access_control_system\oled.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
 intelligent_access_control_system\oled.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
+intelligent_access_control_system\oled.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h
+intelligent_access_control_system\oled.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
 intelligent_access_control_system\oled.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 intelligent_access_control_system\oled.o: ..\App\oledfont.h
 intelligent_access_control_system\oled.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h

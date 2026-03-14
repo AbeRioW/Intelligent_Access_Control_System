@@ -25,4 +25,6 @@ intelligent_access_control_system\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Drive
 intelligent_access_control_system\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
 intelligent_access_control_system\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
 intelligent_access_control_system\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
+intelligent_access_control_system\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h
+intelligent_access_control_system\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
 intelligent_access_control_system\stm32f1xx_it.o: ../Core/Inc/stm32f1xx_it.h
