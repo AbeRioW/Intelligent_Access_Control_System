@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "oled.h"
+#include "Matrix_Keyboard.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -88,8 +89,9 @@ int main(void)
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
   OLED_Init();
-	OLED_ShowString(0,0,(uint8_t*)"hello",8,1);
-	OLED_Refresh();
+  Matrix_Keyboard_Init();
+  OLED_ShowString(0,0,(uint8_t*)"Key: ",8,1);
+  OLED_Refresh();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -99,6 +101,15 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    uint8_t key = Matrix_Keyboard_Scan();
+    if(key != KEY_NONE)
+    {
+      char buf[4];
+      sprintf(buf, "%2d", key);
+      OLED_ShowString(32,0,(uint8_t*)buf,8,1);
+      OLED_Refresh();
+    }
+    HAL_Delay(100);
   }
   /* USER CODE END 3 */
 }

@@ -26,4 +26,5 @@ intelligent_access_control_system\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/st
 intelligent_access_control_system\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
 intelligent_access_control_system\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
 intelligent_access_control_system\main.o: ../Core/Inc/gpio.h
-intelligent_access_control_system\main.o: ..\App\oled.h
+intelligent_access_control_system\main.o: ../App/oled.h
+intelligent_access_control_system\main.o: ../App/Matrix_Keyboard.h

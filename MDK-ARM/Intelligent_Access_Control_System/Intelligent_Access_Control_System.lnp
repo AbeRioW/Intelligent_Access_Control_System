@@ -17,6 +17,7 @@
 "intelligent_access_control_system\stm32f1xx_hal_exti.o"
 "intelligent_access_control_system\system_stm32f1xx.o"
 "intelligent_access_control_system\oled.o"
+"intelligent_access_control_system\matrix_keyboard.o"
 --strict --scatter "Intelligent_Access_Control_System\Intelligent_Access_Control_System.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
