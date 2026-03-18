@@ -30,3 +30,5 @@ intelligent_access_control_system\ui.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm3
 intelligent_access_control_system\ui.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
 intelligent_access_control_system\ui.o: ..\App\oled.h
 intelligent_access_control_system\ui.o: ../Core/Inc/gpio.h
+intelligent_access_control_system\ui.o: ..\App\flash.h
+intelligent_access_control_system\ui.o: ..\App\beep_lay.h

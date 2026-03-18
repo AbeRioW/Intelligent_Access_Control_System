@@ -91,149 +91,6 @@ void ClearPIN(void)
     OLED_Refresh();
 }
 
-void CheckPIN(void)
-{
-    uint8_t storedPin[4];
-    Flash_ReadPIN(storedPin); // 从FLASH读取存储的PIN码
-    
-    // 比较4位数组
-    uint8_t pinMatch = 1;
-    for(uint8_t i = 0; i < 4; i++)
-    {
-        if(currentPin[i] + '0' != storedPin[i])
-        {
-            pinMatch = 0;
-            break;
-        }
-    }
-    
-    if(pinMatch)
-    {
-        Relay_On();
-        OLED_ShowString(0, 24, (uint8_t*)"Success!", 8, 1);
-        OLED_Refresh();
-        HAL_Delay(RELAY_ON_TIME);
-        Relay_Off();
-        OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
-        OLED_Refresh();
-        currentMode = MODE_MAIN;
-        isPinSettingMode = 0;
-        pinRetryCount = 0;
-    }
-    else
-    {
-        pinRetryCount++;
-        if(pinRetryCount >= MAX_PIN_RETRY)
-        {
-            Beep_On();
-            OLED_ShowString(0, 24, (uint8_t*)"Alarm!", 8, 1);
-            OLED_Refresh();
-            HAL_Delay(3000);
-            Beep_Off();
-            OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
-            OLED_Refresh();
-            currentMode = MODE_MAIN;
-            isPinSettingMode = 0;
-            pinRetryCount = 0;
-        }
-        else
-        {
-            OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
-            OLED_Refresh();
-            HAL_Delay(1000);
-            OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
-            OLED_Refresh();
-        }
-        ClearPIN();
-    }
-}
-
-void CheckPinSetting(void)
-{
-    uint8_t storedPin[4];
-    Flash_ReadPIN(storedPin); // 从FLASH读取存储的PIN码
-    
-    // 比较4位数组
-    uint8_t pinMatch = 1;
-    for(uint8_t i = 0; i < 4; i++)
-    {
-        if(currentPin[i] + '0' != storedPin[i])
-        {
-            pinMatch = 0;
-            break;
-        }
-    }
-    
-    if(pinMatch)
-    {
-        // 验证成功，进入修改PIN码界面
-        currentMode = MODE_PIN_SETTING;
-        memset(newPin, 0, sizeof(newPin));
-        pinIndex = 0;
-        isPinSettingMode = 0;
-        OLED_ShowString(0, 0, (uint8_t*)"Set New PIN", 8, 1);
-        OLED_ShowString(0, 8, (uint8_t*)"New PIN: ", 8, 1);
-        OLED_ShowString(48, 8, (uint8_t*)"    ", 8, 1);
-        OLED_ShowString(0, 16, (uint8_t*)"Enter 4-digit PIN", 8, 1);
-        OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
-        OLED_Refresh();
-    }
-    else
-    {
-        // 验证失败
-        OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
-        OLED_Refresh();
-        HAL_Delay(1000);
-        OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
-        OLED_Refresh();
-        currentMode = MODE_MAIN;
-        isPinSettingMode = 0;
-        ClearPIN();
-    }
-}
-
-void SaveNewPIN(void)
-{
-    // 比较4位数组
-    uint8_t pinMatch = 1;
-    for(uint8_t i = 0; i < 4; i++)
-    {
-        if(newPin[i] != confirmPin[i])
-        {
-            pinMatch = 0;
-            break;
-        }
-    }
-    
-    if(pinMatch)
-    {
-        // 两次输入一致，保存新PIN码
-        uint8_t asciiPin[4];
-        for(uint8_t i = 0; i < 4; i++)
-        {
-            asciiPin[i] = newPin[i] + '0';
-        }
-        Flash_WritePIN(asciiPin);
-        OLED_ShowString(0, 24, (uint8_t*)"Saved!", 8, 1);
-        OLED_Refresh();
-        HAL_Delay(1000);
-    }
-    else
-    {
-        // 两次输入不一致
-        OLED_ShowString(0, 24, (uint8_t*)"Mismatch!", 8, 1);
-        OLED_Refresh();
-        HAL_Delay(1000);
-    }
-    
-    OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
-    OLED_Refresh();
-    currentMode = MODE_MAIN;
-    isPinSettingMode = 0;
-    ClearPIN();
-}
-
-
 void welcome_with_pin(uint8_t* pin) {
     OLED_ShowString(10, 0, (uint8_t*)"Welcome", 8, 1);
     char pinStr[5];
@@ -300,10 +157,7 @@ int main(void)
                     currentMode = MODE_PIN;
                     pinIndex = 0;
                     memset(currentPin, 0, sizeof(currentPin));
-                    OLED_ShowString(10, 0, (uint8_t*)"Welcome", 8, 1);
-                    OLED_ShowString(0, 16, (uint8_t*)"____", 8, 1);
-                    OLED_ShowString(0, 32, (uint8_t*)"Enter PIN", 8, 1);
-                    OLED_Refresh();
+                    UI_ShowPINInput();
                 } else if(key == 8) {
                     // 进入PIN设置模式
                     isPinSettingMode = 1;
@@ -319,8 +173,7 @@ int main(void)
                 }
                 break;
             case MODE_PIN:
-                if(key >= 0 && key <= 16) {
-                    // 数字按键 (1-10对应0-9)
+                if(key >= 1 && key <= 16) {
                     uint8_t digit = KeyToDigit(key);
                     if(pinIndex < 4) {
                         currentPin[pinIndex] = digit;
@@ -333,9 +186,62 @@ int main(void)
                         // 4个数字输入完成
                         if(pinIndex == 4) {
                             if(isPinSettingMode) {
-                                CheckPinSetting();
+                                // 验证旧PIN码
+                                if(UI_CheckPinSetting(currentPin)) {
+                                    // 验证成功，进入修改PIN码界面
+                                    currentMode = MODE_PIN_SETTING;
+                                    memset(newPin, 0, sizeof(newPin));
+                                    pinIndex = 0;
+                                    isPinSettingMode = 0;
+                                    UI_ShowPINSetting();
+                                } else {
+                                    // 验证失败
+                                    OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
+                                    OLED_Refresh();
+                                    HAL_Delay(1000);
+                                    OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                                    OLED_Refresh();
+                                    currentMode = MODE_MAIN;
+                                    isPinSettingMode = 0;
+                                    ClearPIN();
+                                }
                             } else {
-                                CheckPIN();
+                                // 验证PIN码
+                                if(UI_CheckPIN(currentPin)) {
+                                    Relay_On();
+                                    OLED_ShowString(0, 24, (uint8_t*)"Success!", 8, 1);
+                                    OLED_Refresh();
+                                    HAL_Delay(RELAY_ON_TIME);
+                                    // 清除success的显示和PIN码的显示
+                                    OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+                                    OLED_ShowString(0, 16, (uint8_t*)"      ", 8, 1);
+                                    OLED_Refresh();
+                                    Relay_Off();
+                                    currentMode = MODE_MAIN;
+                                    isPinSettingMode = 0;
+                                    pinRetryCount = 0;
+                                } else {
+                                    pinRetryCount++;
+                                    if(pinRetryCount >= MAX_PIN_RETRY) {
+                                        Beep_On();
+                                        OLED_ShowString(0, 24, (uint8_t*)"Alarm!", 8, 1);
+                                        OLED_Refresh();
+                                        HAL_Delay(3000);
+                                        Beep_Off();
+                                        OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+                                        OLED_Refresh();
+                                        currentMode = MODE_MAIN;
+                                        isPinSettingMode = 0;
+                                        pinRetryCount = 0;
+                                    } else {
+                                        OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
+                                        OLED_Refresh();
+                                        HAL_Delay(1000);
+                                        OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+                                        OLED_Refresh();
+                                    }
+                                    ClearPIN();
+                                }
                             }
                         }
                     }
@@ -348,8 +254,7 @@ int main(void)
                 }
                 break;
             case MODE_PIN_SETTING:
-                if(key >= 1 && key <= 10) {
-                    // 数字按键 (1-10对应0-9)
+                if(key >= 1 && key <= 16) {
                     uint8_t digit = KeyToDigit(key);
                     if(pinIndex < 4) {
                         newPin[pinIndex] = digit;
@@ -365,12 +270,7 @@ int main(void)
                             currentMode = MODE_PIN_CONFIRM;
                             pinIndex = 0;
                             memset(confirmPin, 0, sizeof(confirmPin));
-                            OLED_ShowString(0, 0, (uint8_t*)"Confirm New PIN", 8, 1);
-                            OLED_ShowString(0, 8, (uint8_t*)"Confirm: ", 8, 1);
-                            OLED_ShowString(48, 8, (uint8_t*)"____", 8, 1);
-                            OLED_ShowString(0, 16, (uint8_t*)"Enter 4-digit PIN", 8, 1);
-                            OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
-                            OLED_Refresh();
+                            UI_ShowPINConfirm();
                         }
                     }
                 } else if(key == 16) {
@@ -395,7 +295,22 @@ int main(void)
                         
                         // 4个数字输入完成
                         if(pinIndex == 4) {
-                            SaveNewPIN();
+                            // 保存新PIN码
+                            if(UI_SaveNewPIN(newPin, confirmPin)) {
+                                OLED_ShowString(0, 24, (uint8_t*)"Saved!", 8, 1);
+                                OLED_Refresh();
+                                HAL_Delay(1000);
+                            } else {
+                                OLED_ShowString(0, 24, (uint8_t*)"Mismatch!", 8, 1);
+                                OLED_Refresh();
+                                HAL_Delay(1000);
+                            }
+                            
+                            OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                            OLED_Refresh();
+                            currentMode = MODE_MAIN;
+                            isPinSettingMode = 0;
+                            ClearPIN();
                         }
                     }
                 } else if(key == 16) {

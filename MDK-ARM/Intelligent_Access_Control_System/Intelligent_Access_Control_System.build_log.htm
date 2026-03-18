@@ -34,19 +34,17 @@ compiling main.c...
   #endif
 ../App/flash.h(7): warning:  #47-D: incompatible redefinition of macro "FLASH_PAGE_SIZE"  (declared at line 241 of "../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h")
   #define FLASH_PAGE_SIZE      0x400  // 1KB per page
-../App/ui.h(9): warning:  #1-D: last line of file ends without a newline
-  #endif /* __MATRIX_KEYBOARD_H__ */
+../App/ui.h(15): warning:  #1-D: last line of file ends without a newline
+  #endif /* __UI_H__ */
 ../App/beep_lay.h(10): warning:  #1-D: last line of file ends without a newline
   #endif /* __FLASH_H__ */
-../Core/Src/main.c(240): warning:  #223-D: function "sprintf" declared implicitly
+../Core/Src/main.c(97): warning:  #223-D: function "sprintf" declared implicitly
       sprintf(pinStr, "%d%d%d%d", pin[0], pin[1], pin[2], pin[3]);
-../Core/Src/main.c(322): warning:  #186-D: pointless comparison of unsigned integer with zero
-                  if(key >= 0 && key <= 16) {
-../Core/Src/main.c: 7 warnings, 0 errors
+../Core/Src/main.c: 6 warnings, 0 errors
 linking...
-Program Size: Code=10528 RO-data=8008 RW-data=32 ZI-data=2976  
+Program Size: Code=10652 RO-data=8008 RW-data=32 ZI-data=2976  
 FromELF: creating hex file...
-"Intelligent_Access_Control_System\Intelligent_Access_Control_System.axf" - 0 Error(s), 7 Warning(s).
+"Intelligent_Access_Control_System\Intelligent_Access_Control_System.axf" - 0 Error(s), 6 Warning(s).
 
 <h2>Software Packages used:</h2>
 
