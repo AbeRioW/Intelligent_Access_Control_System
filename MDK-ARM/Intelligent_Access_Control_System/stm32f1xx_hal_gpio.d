@@ -6,14 +6,14 @@ intelligent_access_control_system\stm32f1xx_hal_gpio.o: ../Drivers/STM32F1xx_HAL
 intelligent_access_control_system\stm32f1xx_hal_gpio.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f1xx.h
 intelligent_access_control_system\stm32f1xx_hal_gpio.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h
 intelligent_access_control_system\stm32f1xx_hal_gpio.o: ../Drivers/CMSIS/Include/core_cm3.h
-intelligent_access_control_system\stm32f1xx_hal_gpio.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+intelligent_access_control_system\stm32f1xx_hal_gpio.o: D:\Program Files\KEIL5\ARM\ARMCC\Bin\..\include\stdint.h
 intelligent_access_control_system\stm32f1xx_hal_gpio.o: ../Drivers/CMSIS/Include/cmsis_version.h
 intelligent_access_control_system\stm32f1xx_hal_gpio.o: ../Drivers/CMSIS/Include/cmsis_compiler.h
 intelligent_access_control_system\stm32f1xx_hal_gpio.o: ../Drivers/CMSIS/Include/cmsis_armcc.h
 intelligent_access_control_system\stm32f1xx_hal_gpio.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h
 intelligent_access_control_system\stm32f1xx_hal_gpio.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h
 intelligent_access_control_system\stm32f1xx_hal_gpio.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h
-intelligent_access_control_system\stm32f1xx_hal_gpio.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+intelligent_access_control_system\stm32f1xx_hal_gpio.o: D:\Program Files\KEIL5\ARM\ARMCC\Bin\..\include\stddef.h
 intelligent_access_control_system\stm32f1xx_hal_gpio.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc_ex.h
 intelligent_access_control_system\stm32f1xx_hal_gpio.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h
 intelligent_access_control_system\stm32f1xx_hal_gpio.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio_ex.h

@@ -209,7 +209,7 @@ int main(void)
   
   OLED_ShowString(0, 0, (uint8_t*)"NFC Mode", 8, 1);
   OLED_ShowString(0, 8, (uint8_t*)"NFC: ", 8, 1);
-  OLED_ShowString(0, 16, (uint8_t*)"Press KEY8 for PIN", 8, 1);
+  OLED_ShowString(0, 16, (uint8_t*)"Press KEY16 for PIN", 8, 1);
   OLED_Refresh();
   /* USER CODE END 2 */
 
@@ -222,7 +222,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
     uint8_t key = Matrix_Keyboard_Scan();
     
-    if(key == 8) // KEY8进入PIN码模式
+    if(key == 16) // KEY16进入PIN码模式
     {
         currentMode = MODE_PIN;
         currentPin = 0;
