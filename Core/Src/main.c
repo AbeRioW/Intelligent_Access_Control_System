@@ -175,13 +175,19 @@ int main(void)
                 }
                 break;
             case MODE_PIN:
-                if(key >= 1 && key <= 16) {
+                if(key >= 1 && key <= 15) {
                     uint8_t digit = KeyToDigit(key);
                     if(pinIndex < 4) {
                         currentPin[pinIndex] = digit;
                         // 显示输入的数字
                         char digitStr[2] = {digit + '0', '\0'};
-                        OLED_ShowString(pinIndex * 8, 16, (uint8_t*)digitStr, 8, 1);
+                        if(isPinSettingMode) {
+                            // 旧PIN码输入，显示在第2行
+                            OLED_ShowString(48 + pinIndex * 8, 8, (uint8_t*)digitStr, 8, 1);
+                        } else {
+                            // 普通PIN码输入，显示在第3行
+                            OLED_ShowString(pinIndex * 8, 16, (uint8_t*)digitStr, 8, 1);
+                        }
                         OLED_Refresh();
                         pinIndex++;
                         
@@ -265,12 +271,18 @@ int main(void)
                     // 重新输入
                     pinIndex = 0;
                     memset(currentPin, 0, sizeof(currentPin));
-                    OLED_ShowString(0, 16, (uint8_t*)"____", 8, 1);
+                    if(isPinSettingMode) {
+                        // 旧PIN码输入，清除第2行
+                        OLED_ShowString(48, 8, (uint8_t*)"____", 8, 1);
+                    } else {
+                        // 普通PIN码输入，清除第3行
+                        OLED_ShowString(0, 16, (uint8_t*)"____", 8, 1);
+                    }
                     OLED_Refresh();
                 }
                 break;
             case MODE_PIN_SETTING:
-                if(key >= 1 && key <= 16) {
+                if(key >= 1 && key <= 15) {
                     uint8_t digit = KeyToDigit(key);
                     if(pinIndex < 4) {
                         newPin[pinIndex] = digit;
@@ -298,8 +310,7 @@ int main(void)
                 }
                 break;
             case MODE_PIN_CONFIRM:
-                if(key >= 1 && key <= 10) {
-                    // 数字按键 (1-10对应0-9)
+                if(key >= 1 && key <= 15) {
                     uint8_t digit = KeyToDigit(key);
                     if(pinIndex < 4) {
                         confirmPin[pinIndex] = digit;
