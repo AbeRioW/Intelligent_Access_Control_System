@@ -31,6 +31,7 @@
 #include "ui.h"
 #include <string.h>
 #include "beep_lay.h"
+#include "AS608.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,7 +42,9 @@ typedef enum {
     MODE_PIN_SETTING,
     MODE_PIN_CONFIRM,
     MODE_NFC_REGISTER,
-    MODE_NFC_UNREGISTER
+    MODE_NFC_UNREGISTER,
+    MODE_FINGER_REGISTER,
+    MODE_FINGER_UNREGISTER
 } SystemMode;
 /* USER CODE END PTD */
 
@@ -82,6 +85,8 @@ uint8_t KeyToDigit(uint8_t key);
 uint32_t ReadNFCID(void);
 void RegisterNFC(void);
 void UnregisterNFC(void);
+void RegisterFingerprint(void);
+void UnregisterFingerprint(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -182,9 +187,12 @@ void RegisterNFC(void)
         }
     }
     
-    // 清除显示
-    OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+    // 完全清除OLED屏幕
+    OLED_Clear();
     OLED_Refresh();
+    
+    // 重新绘制主页面内容（welcome页面）
+    welcome();
     
     // 返回主页面
     currentMode = MODE_MAIN;
@@ -233,9 +241,328 @@ void UnregisterNFC(void)
         }
     }
     
-    // 清除显示
-    OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+    // 完全清除OLED屏幕
+    OLED_Clear();
     OLED_Refresh();
+    
+    // 重新绘制主页面内容（welcome页面）
+    welcome();
+    
+    // 返回主页面
+    currentMode = MODE_MAIN;
+}
+
+// 注册指纹
+void RegisterFingerprint(void)
+{
+    uint8_t result;
+    uint8_t processnum = 0;
+    uint8_t i = 0;
+    uint16_t pageID = 0;
+    uint8_t found = 0;
+    uint16_t score = 0;
+    uint16_t tempPageID = 0;
+    
+    while(1)
+    {
+        switch(processnum)
+        {
+            case 0:
+                // 清除显示
+                OLED_ShowString(0, 0, (uint8_t*)"                ", 8, 1);
+                OLED_ShowString(0, 8, (uint8_t*)"                ", 8, 1);
+                OLED_ShowString(0, 16, (uint8_t*)"                ", 8, 1);
+                OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                OLED_Refresh();
+                HAL_Delay(500); // 增加延迟时间
+                
+                i++;
+                OLED_ShowString(0, 0, (uint8_t*)"Place finger", 8, 1);
+                OLED_ShowString(0, 8, (uint8_t*)"to register", 8, 1);
+                OLED_ShowString(0, 16, (uint8_t*)"First scan", 8, 1);
+                OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                OLED_Refresh();
+                HAL_Delay(1000); // 增加延迟时间
+                
+                // 采集指纹图像
+                result = AS608_GetImage();
+                if(result == AS608_ACK_OK)
+                {
+                    // 生成特征
+                    result = AS608_GenChar(AS608_BUFFER_CHAR1);
+                    if(result == AS608_ACK_OK)
+                    {
+                        OLED_ShowString(0, 16, (uint8_t*)"First ok!        ", 8, 1);
+                        OLED_Refresh();
+                        HAL_Delay(1500); // 增加延迟时间
+                        i = 0;
+                        processnum = 1; // 进入第二步
+                    }
+                    else
+                    {
+                        OLED_ShowString(0, 24, (uint8_t*)"Gen failed!      ", 8, 1);
+                        OLED_Refresh();
+                        HAL_Delay(2000); // 增加延迟时间
+                    }
+                }
+                else
+                {
+                    if(i % 5 == 0)
+                    {
+                        OLED_ShowString(0, 24, (uint8_t*)"No finger!       ", 8, 1);
+                        OLED_Refresh();
+                        HAL_Delay(1000); // 增加延迟时间
+                        OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                        OLED_Refresh();
+                    }
+                }
+                break;
+                
+            case 1:
+                i++;
+                OLED_ShowString(0, 16, (uint8_t*)"Place again      ", 8, 1);
+                OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                OLED_Refresh();
+                HAL_Delay(1000); // 增加延迟时间
+                
+                // 第二次采集指纹
+                result = AS608_GetImage();
+                if(result == AS608_ACK_OK)
+                {
+                    // 生成第二个特征
+                    result = AS608_GenChar(AS608_BUFFER_CHAR2);
+                    if(result == AS608_ACK_OK)
+                    {
+                        OLED_ShowString(0, 16, (uint8_t*)"Second ok!       ", 8, 1);
+                        OLED_Refresh();
+                        HAL_Delay(1500); // 增加延迟时间
+                        i = 0;
+                        processnum = 2; // 进入第三步
+                    }
+                    else
+                    {
+                        OLED_ShowString(0, 24, (uint8_t*)"Gen failed!      ", 8, 1);
+                        OLED_Refresh();
+                        HAL_Delay(2000); // 增加延迟时间
+                    }
+                }
+                else
+                {
+                    if(i % 5 == 0)
+                    {
+                        OLED_ShowString(0, 24, (uint8_t*)"No finger!       ", 8, 1);
+                        OLED_Refresh();
+                        HAL_Delay(1000); // 增加延迟时间
+                        OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                        OLED_Refresh();
+                    }
+                }
+                break;
+                
+            case 2:
+                // 比较两个特征
+                OLED_ShowString(0, 16, (uint8_t*)"Matching...      ", 8, 1);
+                OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                OLED_Refresh();
+                HAL_Delay(1000); // 增加延迟时间
+                
+                result = AS608_Match(&score);
+                if(result == AS608_ACK_OK)
+                {
+                    OLED_ShowString(0, 16, (uint8_t*)"Matched!         ", 8, 1);
+                    OLED_Refresh();
+                    HAL_Delay(1500); // 增加延迟时间
+                    processnum = 3; // 进入第四步
+                }
+                else
+                {
+                    OLED_ShowString(0, 24, (uint8_t*)"Not same!        ", 8, 1);
+                    OLED_Refresh();
+                    HAL_Delay(2000); // 增加延迟时间
+                    processnum = 0; // 重新开始
+                }
+                break;
+                
+            case 3:
+                // 合并特征
+                OLED_ShowString(0, 16, (uint8_t*)"Processing...    ", 8, 1);
+                OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                OLED_Refresh();
+                HAL_Delay(1000); // 增加延迟时间
+                
+                result = AS608_RegModel();
+                if(result == AS608_ACK_OK)
+                {
+                    OLED_ShowString(0, 16, (uint8_t*)"Merged!          ", 8, 1);
+                    OLED_Refresh();
+                    HAL_Delay(1500); // 增加延迟时间
+                    processnum = 4; // 进入第五步
+                }
+                else
+                {
+                    OLED_ShowString(0, 24, (uint8_t*)"Merge failed!    ", 8, 1);
+                    OLED_Refresh();
+                    HAL_Delay(2000); // 增加延迟时间
+                    processnum = 0; // 重新开始
+                }
+                break;
+                
+            case 4:
+                // 查找可用的ID
+                OLED_ShowString(0, 16, (uint8_t*)"Finding ID...    ", 8, 1);
+                OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                OLED_Refresh();
+                HAL_Delay(1000); // 增加延迟时间
+                
+                // 逐个查找可用ID，从0开始
+                pageID = 0;
+                found = 0;
+                
+                while(pageID < AS608_MAX_FINGER_NUM)
+                {
+                    // 尝试读取指定ID的指纹
+                    result = AS608_Empty(); // 先清空缓冲区
+                    if(result == AS608_ACK_OK)
+                    {
+                        // 尝试读取指定ID的指纹
+                        result = AS608_LoadChar(AS608_BUFFER_CHAR1, pageID);
+                        if(result != AS608_ACK_OK)
+                        {
+                            // 该ID不存在，可用
+                            found = 1;
+                            break;
+                        }
+                    }
+                    pageID++;
+                }
+                
+                if(!found)
+                {
+                    // 如果没找到可用ID，从0开始重新查找
+                    pageID = 0;
+                    found = 1;
+                }
+                
+                // 显示找到的ID
+                char id_str[16];
+                sprintf(id_str, "ID:%d            ", pageID);
+                OLED_ShowString(0, 24, (uint8_t*)id_str, 8, 1);
+                OLED_Refresh();
+                HAL_Delay(1000); // 增加延迟时间
+                
+                processnum = 5; // 进入第六步
+                break;
+                
+            case 5:
+                // 存储指纹
+                OLED_ShowString(0, 16, (uint8_t*)"Storing...       ", 8, 1);
+                OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                OLED_Refresh();
+                HAL_Delay(1000); // 增加延迟时间
+                
+                result = AS608_StoreChar(AS608_BUFFER_CHAR2, pageID);
+                if(result == AS608_ACK_OK)
+                {
+                    // 清除旧内容
+                    OLED_ShowString(0, 16, (uint8_t*)"                ", 8, 1);
+                    OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                    OLED_Refresh();
+                    
+                    // 显示注册成功信息
+                    OLED_ShowString(0, 0, (uint8_t*)"Registered!      ", 8, 1);
+                    char id_str[16];
+                    sprintf(id_str, "ID:%d            ", pageID);
+                    OLED_ShowString(0, 8, (uint8_t*)id_str, 8, 1);
+                    OLED_ShowString(0, 16, (uint8_t*)"Success!         ", 8, 1);
+                    OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                    OLED_Refresh();
+                    HAL_Delay(2500); // 增加延迟时间，确保用户能看到
+                    goto cleanup;
+                }
+                else
+                {
+                    OLED_ShowString(0, 24, (uint8_t*)"Store failed!    ", 8, 1);
+                    OLED_Refresh();
+                    HAL_Delay(2000); // 增加延迟时间
+                    processnum = 0; // 重新开始
+                }
+                break;
+        }
+        HAL_Delay(100);
+    }
+
+cleanup:
+    // 完全清除OLED屏幕
+    OLED_Clear();
+    OLED_Refresh();
+    
+    // 重新绘制主页面内容（welcome页面）
+    welcome();
+    
+    // 返回主页面
+    currentMode = MODE_MAIN;
+}
+
+// 注销指纹
+void UnregisterFingerprint(void)
+{
+    OLED_ShowString(0, 0, (uint8_t*)"Place finger", 8, 1);
+    OLED_ShowString(0, 8, (uint8_t*)"to unregister", 8, 1);
+    OLED_ShowString(0, 16, (uint8_t*)"                ", 8, 1);
+    OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+    OLED_Refresh();
+    
+    // 显示正在验证指纹
+    OLED_ShowString(0, 16, (uint8_t*)"Verifying...", 8, 1);
+    OLED_Refresh();
+    
+    // 等待用户放置指纹
+    uint16_t pageID = 0;
+    uint16_t score = 0;
+    uint8_t result = AS608_VerifyFinger(&pageID, &score);
+    
+    // 清除验证状态显示
+    OLED_ShowString(0, 16, (uint8_t*)"                ", 8, 1);
+    OLED_Refresh();
+    
+    if(result == AS608_ACK_OK)
+    {
+        // 显示正在删除
+        OLED_ShowString(0, 16, (uint8_t*)"Deleting...", 8, 1);
+        OLED_Refresh();
+        
+        // 找到指纹，删除它
+        result = AS608_DeleteChar(pageID, 1);
+        
+        // 清除删除状态显示
+        OLED_ShowString(0, 16, (uint8_t*)"                ", 8, 1);
+        OLED_Refresh();
+        
+        if(result == AS608_ACK_OK)
+        {
+            // 注销成功
+            OLED_ShowString(0, 24, (uint8_t*)"Unregistered!", 8, 1);
+            OLED_Refresh();
+            HAL_Delay(1000);
+        } else {
+            // 注销失败
+            OLED_ShowString(0, 24, (uint8_t*)"Failed!", 8, 1);
+            OLED_Refresh();
+            HAL_Delay(1000);
+        }
+    } else {
+        // 未找到指纹
+        OLED_ShowString(0, 24, (uint8_t*)"Not found!", 8, 1);
+        OLED_Refresh();
+        HAL_Delay(1000);
+    }
+    
+    // 完全清除OLED屏幕
+    OLED_Clear();
+    OLED_Refresh();
+    
+    // 重新绘制主页面内容（welcome页面）
+    welcome();
     
     // 返回主页面
     currentMode = MODE_MAIN;
@@ -279,6 +606,33 @@ int main(void)
   OLED_Init();
   PCD_Init();
   Flash_Init();
+  AS608_Init();
+  
+  // 检测AS608握手
+  OLED_ShowString(0, 0, (uint8_t*)"Checking AS608...", 8, 1);
+  OLED_Refresh();
+  
+  // 尝试握手
+  uint32_t as608_addr = 0xffffffff;
+  uint8_t handshake_result = AS608_HandShake(&as608_addr);
+  
+  if(handshake_result == AS608_ACK_OK) {
+      OLED_ShowString(0, 16, (uint8_t*)"Handshake OK!", 8, 1);
+      // 显示设备地址
+      char addr_str[17];
+      sprintf(addr_str, "Addr: %08X", as608_addr);
+      OLED_ShowString(0, 24, (uint8_t*)addr_str, 8, 1);
+  } else {
+      OLED_ShowString(0, 16, (uint8_t*)"Handshake Fail!", 8, 1);
+      // 显示错误码
+      char error_str[16];
+      sprintf(error_str, "Error: %02X", handshake_result);
+      OLED_ShowString(0, 24, (uint8_t*)error_str, 8, 1);
+  }
+  OLED_Refresh();
+  HAL_Delay(2000);
+	OLED_Clear();
+  
   welcome();
    
   /* USER CODE END 2 */
@@ -317,6 +671,38 @@ int main(void)
                 Relay_Off();
                 OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
                 OLED_Refresh();
+            }
+        }
+        
+        // 主页面指纹检测（不使用PS_STA引脚）
+        static uint32_t lastFingerCheckTime = 0;
+        uint32_t currentTime = HAL_GetTick();
+        
+        // 每500ms检测一次指纹，避免频繁检测影响性能
+        if(currentTime - lastFingerCheckTime >= 500) {
+            lastFingerCheckTime = currentTime;
+            
+            uint16_t fingerID = 0;
+            uint16_t score = 0;
+            uint8_t fingerResult = AS608_VerifyFinger(&fingerID, &score);
+            
+            // 只处理成功的情况，忽略其他情况（如无指纹）
+            if(fingerResult == AS608_ACK_OK) {
+                // 指纹已注册，拉高LAY
+                Relay_On();
+                OLED_ShowString(0, 24, (uint8_t*)"Success!", 8, 1);
+                OLED_Refresh();
+                HAL_Delay(RELAY_ON_TIME);
+                // 关闭LAY
+                Relay_Off();
+                OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+                OLED_Refresh();
+            } else if(fingerResult == AS608_ACK_NO_FINGER) {
+                // 无指纹，不显示任何信息
+            } else if(fingerResult == AS608_ACK_NO_FOUND) {
+                // 指纹未找到，不显示任何信息
+            } else {
+                // 其他错误，不显示任何信息
             }
         }
     }
@@ -369,6 +755,32 @@ int main(void)
                     OLED_ShowString(48, 8, (uint8_t*)"____", 8, 1);
                     OLED_ShowString(0, 16, (uint8_t*)"Enter 4-digit PIN", 8, 1);
                     OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                    OLED_Refresh();
+                } else if(key == 4) {
+                    // 进入指纹注册模式
+                    isPinSettingMode = 4; // 标记为指纹注册模式
+                    currentMode = MODE_PIN;
+                    pinIndex = 0;
+                    oldPinRetryCount = 0;
+                    memset(currentPin, 0, sizeof(currentPin));
+                    OLED_ShowString(0, 0, (uint8_t*)"Enter PIN to Register", 8, 1);
+                    OLED_ShowString(0, 8, (uint8_t*)"Fingerprint", 8, 1);
+                    OLED_ShowString(0, 16, (uint8_t*)"PIN: ", 8, 1);
+                    OLED_ShowString(48, 16, (uint8_t*)"____", 8, 1);
+                    OLED_ShowString(0, 24, (uint8_t*)"Enter 4-digit PIN", 8, 1);
+                    OLED_Refresh();
+                } else if(key == 12) {
+                    // 进入指纹注销模式
+                    isPinSettingMode = 5; // 标记为指纹注销模式
+                    currentMode = MODE_PIN;
+                    pinIndex = 0;
+                    oldPinRetryCount = 0;
+                    memset(currentPin, 0, sizeof(currentPin));
+                    OLED_ShowString(0, 0, (uint8_t*)"Enter PIN to Unregister", 8, 1);
+                    OLED_ShowString(0, 8, (uint8_t*)"Fingerprint", 8, 1);
+                    OLED_ShowString(0, 16, (uint8_t*)"PIN: ", 8, 1);
+                    OLED_ShowString(48, 16, (uint8_t*)"____", 8, 1);
+                    OLED_ShowString(0, 24, (uint8_t*)"Enter 4-digit PIN", 8, 1);
                     OLED_Refresh();
                 }
                 break;
@@ -499,6 +911,83 @@ int main(void)
                                         OLED_Refresh();
                                     }
                                 }
+                            } else if(isPinSettingMode == 4) {
+                                // 验证PIN码（用于指纹注册）
+                                if(UI_CheckPinSetting(currentPin)) {
+                                    // 验证成功，进入指纹注册模式
+                                    currentMode = MODE_FINGER_REGISTER;
+                                    isPinSettingMode = 0;
+                                    // 完全清除OLED屏幕
+                                    OLED_Clear();
+                                    OLED_Refresh();
+                                    OLED_ShowString(0, 0, (uint8_t*)"Fingerprint", 8, 1);
+                                    OLED_ShowString(0, 8, (uint8_t*)"                ", 8, 1);
+                                    OLED_ShowString(0, 16, (uint8_t*)"                ", 8, 1);
+                                    OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                                    OLED_Refresh();
+                                    RegisterFingerprint();
+                                } else {
+                                    // 验证失败
+                                    oldPinRetryCount++;
+                                    if(oldPinRetryCount >= MAX_PIN_RETRY) {
+                                        OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
+                                        OLED_Refresh();
+                                        HAL_Delay(1000);
+                                        OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                                        OLED_Refresh();
+                                        currentMode = MODE_MAIN;
+                                        isPinSettingMode = 0;
+                                        oldPinRetryCount = 0;
+                                        ClearPIN();
+                                    } else {
+                                        OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
+                                        OLED_Refresh();
+                                        HAL_Delay(1000);
+                                        OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                                        OLED_Refresh();
+                                        pinIndex = 0;
+                                        memset(currentPin, 0, sizeof(currentPin));
+                                        OLED_ShowString(48, 16, (uint8_t*)"____", 8, 1);
+                                        OLED_Refresh();
+                                    }
+                                }
+                            } else if(isPinSettingMode == 5) {
+                                // 验证PIN码（用于指纹注销）
+                                if(UI_CheckPinSetting(currentPin)) {
+                                    // 验证成功，进入指纹注销模式
+                                    currentMode = MODE_FINGER_UNREGISTER;
+                                    isPinSettingMode = 0;
+                                    OLED_ShowString(0, 0, (uint8_t*)"Fingerprint", 8, 1);
+                                    OLED_ShowString(0, 8, (uint8_t*)"                ", 8, 1);
+                                    OLED_ShowString(0, 16, (uint8_t*)"                ", 8, 1);
+                                    OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                                    OLED_Refresh();
+                                    UnregisterFingerprint();
+                                } else {
+                                    // 验证失败
+                                    oldPinRetryCount++;
+                                    if(oldPinRetryCount >= MAX_PIN_RETRY) {
+                                        OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
+                                        OLED_Refresh();
+                                        HAL_Delay(1000);
+                                        OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                                        OLED_Refresh();
+                                        currentMode = MODE_MAIN;
+                                        isPinSettingMode = 0;
+                                        oldPinRetryCount = 0;
+                                        ClearPIN();
+                                    } else {
+                                        OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
+                                        OLED_Refresh();
+                                        HAL_Delay(1000);
+                                        OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                                        OLED_Refresh();
+                                        pinIndex = 0;
+                                        memset(currentPin, 0, sizeof(currentPin));
+                                        OLED_ShowString(48, 16, (uint8_t*)"____", 8, 1);
+                                        OLED_Refresh();
+                                    }
+                                }
                             } else {
                                 // 验证普通PIN码
                                 if(UI_CheckPIN(currentPin)) {
@@ -546,6 +1035,9 @@ int main(void)
                     if(isPinSettingMode == 1 || isPinSettingMode == 2 || isPinSettingMode == 3) {
                         // 旧PIN码输入或NFC操作，清除第2行
                         OLED_ShowString(48, 8, (uint8_t*)"____", 8, 1);
+                    } else if(isPinSettingMode == 4 || isPinSettingMode == 5) {
+                        // 指纹操作，清除第3行
+                        OLED_ShowString(48, 16, (uint8_t*)"____", 8, 1);
                     } else {
                         // 普通PIN码输入，清除第3行
                         OLED_ShowString(0, 16, (uint8_t*)"____", 8, 1);
@@ -683,8 +1175,7 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
-
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.

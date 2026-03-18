@@ -28,3 +28,6 @@ intelligent_access_control_system\usart.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/s
 intelligent_access_control_system\usart.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
 intelligent_access_control_system\usart.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h
 intelligent_access_control_system\usart.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+intelligent_access_control_system\usart.o: ../App/AS608.h
+intelligent_access_control_system\usart.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+intelligent_access_control_system\usart.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h

@@ -101,6 +101,14 @@ typedef struct {
     uint16_t baud_rate;
 } AS608_InfoTypeDef;
 
+/* 中断接收相关定义 */
+#define USART3_MAX_RECV_LEN 256
+#define USART3_MAX_SEND_LEN 256
+
+extern uint32_t AS608_Address;
+extern uint8_t USART3_RX_BUF[USART3_MAX_RECV_LEN];
+extern volatile uint16_t USART3_RX_STA;
+
 /* 函数声明 */
 void AS608_Init(void);
 uint8_t AS608_VerifyPassword(uint32_t password);
@@ -120,5 +128,7 @@ uint8_t AS608_Enroll(uint16_t pageID);
 uint8_t AS608_VerifyFinger(uint16_t *pageID, uint16_t *score);
 
 const char* AS608_GetErrorString(uint8_t errorCode);
+void AS608_USART3_Init(uint32_t bound);
+void AS608_USART3_IRQHandler(void);
 
 #endif /* __AS608_H__ */

@@ -37,3 +37,5 @@ intelligent_access_control_system\main.o: ../App/flash.h
 intelligent_access_control_system\main.o: ../App/ui.h
 intelligent_access_control_system\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 intelligent_access_control_system\main.o: ../App/beep_lay.h
+intelligent_access_control_system\main.o: ../App/AS608.h
+intelligent_access_control_system\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h

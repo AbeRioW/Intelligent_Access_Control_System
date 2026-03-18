@@ -1,37 +1,92 @@
 #include "AS608.h"
+#include "main.h"
 
-static uint32_t AS608_Address = AS608_CMD_ADDRESS;
+/* 全局变量 */
+uint32_t AS608_Address = AS608_CMD_ADDRESS;
+
+/* 中断接收相关变量 */
+uint8_t USART3_RX_BUF[USART3_MAX_RECV_LEN]; // 接收缓冲区
+volatile uint16_t USART3_RX_STA = 0; // 接收状态标志
 
 static void AS608_SendPacket(uint8_t *data, uint16_t len)
 {
     HAL_UART_Transmit(&huart3, data, len, AS608_TIMEOUT_MS);
 }
 
+// 接收数据包
 static uint8_t AS608_ReceivePacket(uint8_t *data, uint16_t *len)
 {
-    uint8_t rx_buf[256];
-    uint16_t rx_len = 0;
     uint32_t start_tick = HAL_GetTick();
+    
+    // 重置接收状态
+    USART3_RX_STA = 0;
     
     while (HAL_GetTick() - start_tick < AS608_TIMEOUT_MS)
     {
-        uint8_t tmp;
-        if (HAL_UART_Receive(&huart3, &tmp, 1, 10) == HAL_OK)
+        if (USART3_RX_STA > 0) // 接收到数据
         {
-            rx_buf[rx_len++] = tmp;
-            
-            if (rx_len >= 9)
+            if (USART3_RX_STA >= 9)
             {
-                uint16_t pkg_len = (rx_buf[7] << 8) | rx_buf[8];
-                if (rx_len >= pkg_len + 9)
+                uint16_t pkg_len = (USART3_RX_BUF[7] << 8) | USART3_RX_BUF[8];
+                if (USART3_RX_STA >= pkg_len + 9)
                 {
-                    memcpy(data, rx_buf, rx_len);
-                    *len = rx_len;
+                    memcpy(data, USART3_RX_BUF, USART3_RX_STA);
+                    *len = USART3_RX_STA;
+                    USART3_RX_STA = 0; // 重置接收状态
                     return AS608_ACK_OK;
                 }
             }
         }
+        HAL_Delay(1); // 短暂延迟
     }
+    USART3_RX_STA = 0; // 重置接收状态
+    return 0xFF; // 超时
+}
+
+// 简化的握手实现，参考库函数版本
+static uint8_t AS608_SimpleHandShake(uint32_t *addr)
+{
+    uint8_t tx_buf[9];
+    uint32_t start_tick = HAL_GetTick();
+    
+    // 发送握手命令（完全按照参考代码格式）
+    tx_buf[0] = 0xEF;
+    tx_buf[1] = 0x01;
+    tx_buf[2] = (AS608_Address >> 24) & 0xFF;
+    tx_buf[3] = (AS608_Address >> 16) & 0xFF;
+    tx_buf[4] = (AS608_Address >> 8) & 0xFF;
+    tx_buf[5] = AS608_Address & 0xFF;
+    tx_buf[6] = 0x01;
+    tx_buf[7] = 0x00;
+    tx_buf[8] = 0x00;
+    
+    // 重置接收状态
+    USART3_RX_STA = 0;
+    
+    // 直接发送数据，不使用校验和
+    HAL_UART_Transmit(&huart3, tx_buf, 9, AS608_TIMEOUT_MS);
+    
+    // 等待响应（参考代码使用200ms延迟）
+    HAL_Delay(200);
+    
+    // 读取响应数据
+    while (HAL_GetTick() - start_tick < AS608_TIMEOUT_MS)
+    {
+        if (USART3_RX_STA >= 9) // 接收到足够的数据
+        {
+            // 检查是否接收到完整的响应
+            if (USART3_RX_BUF[0] == 0xEF && USART3_RX_BUF[1] == 0x01 && USART3_RX_BUF[6] == 0x07)
+            {
+                *addr = ((uint32_t)USART3_RX_BUF[2] << 24) | ((uint32_t)USART3_RX_BUF[3] << 16) | 
+                        ((uint32_t)USART3_RX_BUF[4] << 8) | USART3_RX_BUF[5];
+                AS608_Address = *addr;
+                USART3_RX_STA = 0; // 重置接收状态
+                return AS608_ACK_OK;
+            }
+        }
+        HAL_Delay(1); // 短暂延迟
+    }
+    USART3_RX_STA = 0; // 重置接收状态
     return 0xFF;
 }
 
@@ -75,8 +130,10 @@ static uint8_t AS608_SendCommand(uint8_t cmd, uint8_t *data, uint16_t data_len, 
     tx_buf[tx_len++] = (checksum >> 8) & 0xFF;
     tx_buf[tx_len++] = checksum & 0xFF;
     
+    // 发送数据
     HAL_UART_Transmit(&huart3, tx_buf, tx_len, AS608_TIMEOUT_MS);
     
+    // 等待接收响应
     if (resp != NULL && resp_len != NULL)
     {
         return AS608_ReceivePacket(resp, resp_len);
@@ -85,9 +142,26 @@ static uint8_t AS608_SendCommand(uint8_t cmd, uint8_t *data, uint16_t data_len, 
     return AS608_ACK_OK;
 }
 
+static void AS608_Reset(void)
+{
+    // 重置AS608模块
+    HAL_Delay(100);
+    // 发送握手命令前的延迟
+    HAL_Delay(500);
+}
+
 void AS608_Init(void)
 {
     MX_USART3_UART_Init();
+    
+    // 增加初始化延迟
+    HAL_Delay(1000);
+    
+    // 重置AS608模块
+    AS608_Reset();
+    
+    // 再次延迟确保模块就绪
+    HAL_Delay(500);
 }
 
 uint8_t AS608_VerifyPassword(uint32_t password)
@@ -305,18 +379,40 @@ uint8_t AS608_ReadSysPara(AS608_InfoTypeDef *info)
 
 uint8_t AS608_HandShake(uint32_t *addr)
 {
-    uint8_t resp[32];
-    uint16_t resp_len;
-    
-    if (AS608_SendCommand(AS608_CMD_HANDSHAKE, NULL, 0, resp, &resp_len) == AS608_ACK_OK)
+    // 尝试多次握手，增加成功率
+    for (uint8_t i = 0; i < 3; i++)
     {
-        if (resp_len >= 15)
+        // 尝试使用简化的握手实现
+        uint8_t result = AS608_SimpleHandShake(addr);
+        if (result == AS608_ACK_OK)
         {
-            *addr = ((uint32_t)resp[10] << 24) | ((uint32_t)resp[11] << 16) | ((uint32_t)resp[12] << 8) | resp[13];
-            AS608_Address = *addr;
             return AS608_ACK_OK;
         }
+        
+        // 延迟后重试
+        HAL_Delay(300);
     }
+    
+    // 如果简化版本失败，尝试标准命令
+    for (uint8_t i = 0; i < 2; i++)
+    {
+        uint8_t resp[32];
+        uint16_t resp_len;
+        
+        if (AS608_SendCommand(AS608_CMD_HANDSHAKE, NULL, 0, resp, &resp_len) == AS608_ACK_OK)
+        {
+            if (resp_len >= 15)
+            {
+                *addr = ((uint32_t)resp[10] << 24) | ((uint32_t)resp[11] << 16) | ((uint32_t)resp[12] << 8) | resp[13];
+                AS608_Address = *addr;
+                return AS608_ACK_OK;
+            }
+        }
+        
+        // 延迟后重试
+        HAL_Delay(300);
+    }
+    
     return 0xFF;
 }
 

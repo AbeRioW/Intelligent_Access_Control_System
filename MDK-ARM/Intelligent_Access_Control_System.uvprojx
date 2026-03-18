@@ -748,6 +748,11 @@
               <FileType>1</FileType>
               <FilePath>..\App\ui.c</FilePath>
             </File>
+            <File>
+              <FileName>AS608.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\App\AS608.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

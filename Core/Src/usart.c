@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "usart.h"
+#include "AS608.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -30,16 +31,15 @@ UART_HandleTypeDef huart3;
 
 void MX_USART3_UART_Init(void)
 {
-
   /* USER CODE BEGIN USART3_Init 0 */
-
   /* USER CODE END USART3_Init 0 */
-
   /* USER CODE BEGIN USART3_Init 1 */
-
+  // 确保USART3时钟已启用
+  __HAL_RCC_USART3_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
   /* USER CODE END USART3_Init 1 */
   huart3.Instance = USART3;
-  huart3.Init.BaudRate = 115200;
+  huart3.Init.BaudRate = 57600;
   huart3.Init.WordLength = UART_WORDLENGTH_8B;
   huart3.Init.StopBits = UART_STOPBITS_1;
   huart3.Init.Parity = UART_PARITY_NONE;
@@ -51,9 +51,12 @@ void MX_USART3_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART3_Init 2 */
-
+  // 清除接收缓冲区
+  __HAL_UART_FLUSH_DRREGISTER(&huart3);
+  
+  // 启用接收中断
+  HAL_UART_Receive_IT(&huart3, &USART3_RX_BUF[0], 1);
   /* USER CODE END USART3_Init 2 */
-
 }
 
 void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)

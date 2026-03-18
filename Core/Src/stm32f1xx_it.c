@@ -22,6 +22,7 @@
 #include "stm32f1xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "AS608.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,6 +58,8 @@
 /* External variables --------------------------------------------------------*/
 extern SPI_HandleTypeDef hspi1;
 extern UART_HandleTypeDef huart3;
+extern uint8_t USART3_RX_BUF[USART3_MAX_RECV_LEN];
+extern volatile uint16_t USART3_RX_STA;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -228,5 +231,30 @@ void USART3_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
+
+/**
+  * @brief  UART接收完成回调函数
+  * @param  huart: UART句柄
+  * @retval None
+  */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if (huart == &huart3)
+    {
+        if ((USART3_RX_STA & 0x8000) == 0) // 接收未完成
+        {
+            if (USART3_RX_STA < USART3_MAX_RECV_LEN) // 缓冲区未满
+            {
+                USART3_RX_STA++; // 接收长度+1
+                // 继续接收下一个字节
+                HAL_UART_Receive_IT(&huart3, &USART3_RX_BUF[USART3_RX_STA], 1);
+            }
+            else
+            {
+                USART3_RX_STA |= 0x8000; // 标记接收完成
+            }
+        }
+    }
+}
 
 /* USER CODE END 1 */

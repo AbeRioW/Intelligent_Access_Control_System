@@ -26,6 +26,7 @@
 "intelligent_access_control_system\flash.o"
 "intelligent_access_control_system\beep_lay.o"
 "intelligent_access_control_system\ui.o"
+"intelligent_access_control_system\as608.o"
 --strict --scatter "Intelligent_Access_Control_System\Intelligent_Access_Control_System.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
