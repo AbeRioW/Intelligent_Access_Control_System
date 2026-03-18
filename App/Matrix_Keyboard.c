@@ -1,10 +1,5 @@
 #include "Matrix_Keyboard.h"
 
-void Matrix_Keyboard_Init(void)
-{
-  /* 行列引脚已经在MX_GPIO_Init中初始化 */
-  /* LINE1-LINE4为输出，ROW1-ROW4为输入 */
-}
 
 uint8_t Matrix_Keyboard_Scan(void)
 {
@@ -183,4 +178,23 @@ uint8_t Matrix_Keyboard_Scan(void)
   HAL_GPIO_WritePin(LINE4_GPIO_Port, LINE4_Pin, GPIO_PIN_SET);
   
   return key_value;
+}
+
+
+uint8_t KeyToDigit(uint8_t key)
+{
+    switch(key)
+    {
+        case 1: return 1;
+        case 2: return 2;
+        case 3: return 3;
+        case 5: return 4;
+        case 6: return 5;
+        case 7: return 6;
+        case 9: return 7;
+        case 10: return 8;
+        case 11: return 9;
+        case 14: return 0;
+        default: return 0xFF; // 无效按键
+    }
 }

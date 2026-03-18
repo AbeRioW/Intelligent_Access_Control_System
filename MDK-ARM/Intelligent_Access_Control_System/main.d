@@ -34,3 +34,6 @@ intelligent_access_control_system\main.o: ../App/oled.h
 intelligent_access_control_system\main.o: ../App/Matrix_Keyboard.h
 intelligent_access_control_system\main.o: ../App/RC522.h
 intelligent_access_control_system\main.o: ../App/flash.h
+intelligent_access_control_system\main.o: ../App/ui.h
+intelligent_access_control_system\main.o: D:\Program Files\KEIL5\ARM\ARMCC\Bin\..\include\string.h
+intelligent_access_control_system\main.o: ../App/beep_lay.h

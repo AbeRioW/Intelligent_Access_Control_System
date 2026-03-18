@@ -724,11 +724,6 @@
               <FilePath>..\App\Matrix_Keyboard.c</FilePath>
             </File>
             <File>
-              <FileName>Matrix_Keyboard.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\App\Matrix_Keyboard.h</FilePath>
-            </File>
-            <File>
               <FileName>RC522.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\App\RC522.c</FilePath>
@@ -737,6 +732,21 @@
               <FileName>flash.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\App\flash.c</FilePath>
+            </File>
+            <File>
+              <FileName>beep_lay.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\App\beep_lay.c</FilePath>
+            </File>
+            <File>
+              <FileName>beep_lay.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\App\beep_lay.h</FilePath>
+            </File>
+            <File>
+              <FileName>ui.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\App\ui.c</FilePath>
             </File>
           </Files>
         </Group>
