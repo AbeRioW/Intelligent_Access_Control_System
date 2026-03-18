@@ -275,6 +275,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
+	Relay_Off();
   OLED_Init();
   PCD_Init();
   Flash_Init();
@@ -289,6 +290,37 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    // 主页面NFC卡片检测
+    if(currentMode == MODE_MAIN) {
+        uint32_t nfcId = ReadNFCID();
+        if(nfcId != 0) {
+            // 读取FLASH中存储的NFC ID
+            uint32_t nfcIds[MAX_NFC_IDS];
+            uint8_t count = Flash_ReadNFCIDs(nfcIds);
+            
+            // 检查卡片ID是否在FLASH中
+            uint8_t found = 0;
+            for(uint8_t i = 0; i < count; i++) {
+                if(nfcIds[i] == nfcId) {
+                    found = 1;
+                    break;
+                }
+            }
+            
+            if(found) {
+                // 卡片已注册，拉高LAY
+                Relay_On();
+                OLED_ShowString(0, 24, (uint8_t*)"Success!", 8, 1);
+                OLED_Refresh();
+                HAL_Delay(RELAY_ON_TIME);
+                // 关闭LAY
+                Relay_Off();
+                OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+                OLED_Refresh();
+            }
+        }
+    }
+    
     uint8_t key = Matrix_Keyboard_Scan(); 
     if(key != 0) {
         switch(currentMode) {

@@ -3,9 +3,9 @@
 <title>Static Call Graph - [Intelligent_Access_Control_System\Intelligent_Access_Control_System.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image Intelligent_Access_Control_System\Intelligent_Access_Control_System.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Wed Mar 18 17:50:47 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Wed Mar 18 19:58:03 2026
 <BR><P>
-<H3>Maximum Stack Usage =        320 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
+<H3>Maximum Stack Usage =        352 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
 __rt_entry_main &rArr; main &rArr; UnregisterNFC &rArr; ReadNFCID &rArr; PCD_Anticoll &rArr; MFRC_CmdFrame &rArr; MFRC_SetBitMask &rArr; MFRC_ReadReg &rArr; SPI1_RW_Byte &rArr; HAL_SPI_TransmitReceive &rArr; SPI_EndRxTxTransaction &rArr; SPI_WaitFlagStateUntilTimeout
 <P>
@@ -202,7 +202,7 @@ Global Symbols
 <P><STRONG><a name="[d1]"></a>__rt_entry_postsh_1</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, __rtentry2.o(.ARM.Collect$$rtentry$$00000009))
 
 <P><STRONG><a name="[46]"></a>__rt_entry_main</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, __rtentry2.o(.ARM.Collect$$rtentry$$0000000D))
-<BR><BR>[Stack]<UL><LI>Max Depth = 320 + Unknown Stack Size
+<BR><BR>[Stack]<UL><LI>Max Depth = 352 + Unknown Stack Size
 <LI>Call Chain = __rt_entry_main &rArr; main &rArr; UnregisterNFC &rArr; ReadNFCID &rArr; PCD_Anticoll &rArr; MFRC_CmdFrame &rArr; MFRC_SetBitMask &rArr; MFRC_ReadReg &rArr; SPI1_RW_Byte &rArr; HAL_SPI_TransmitReceive &rArr; SPI_EndRxTxTransaction &rArr; SPI_WaitFlagStateUntilTimeout
 </UL>
 <BR>[Calls]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -473,10 +473,10 @@ Global Symbols
 <P><STRONG><a name="[59]"></a>Flash_AddNFCID</STRONG> (Thumb, 86 bytes, Stack size 56 bytes, flash.o(i.Flash_AddNFCID))
 <BR><BR>[Stack]<UL><LI>Max Depth = 112<LI>Call Chain = Flash_AddNFCID &rArr; HAL_FLASH_Program &rArr; FLASH_WaitForLastOperation
 </UL>
-<BR>[Calls]<UL><LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_FLASH_Unlock
+<BR>[Calls]<UL><LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Flash_ReadNFCIDs
+<LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_FLASH_Unlock
 <LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_FLASH_Program
 <LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_FLASH_Lock
-<LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Flash_ReadNFCIDs
 </UL>
 <BR>[Called By]<UL><LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RegisterNFC
 </UL>
@@ -497,6 +497,7 @@ Global Symbols
 </UL>
 <BR>[Called By]<UL><LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Flash_RemoveNFCID
 <LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Flash_AddNFCID
+<LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
 <P><STRONG><a name="[a8]"></a>Flash_ReadPIN</STRONG> (Thumb, 20 bytes, Stack size 0 bytes, flash.o(i.Flash_ReadPIN))
@@ -507,11 +508,11 @@ Global Symbols
 <P><STRONG><a name="[60]"></a>Flash_RemoveNFCID</STRONG> (Thumb, 136 bytes, Stack size 80 bytes, flash.o(i.Flash_RemoveNFCID))
 <BR><BR>[Stack]<UL><LI>Max Depth = 136<LI>Call Chain = Flash_RemoveNFCID &rArr; HAL_FLASH_Program &rArr; FLASH_WaitForLastOperation
 </UL>
-<BR>[Calls]<UL><LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_FLASHEx_Erase
+<BR>[Calls]<UL><LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Flash_ReadNFCIDs
+<LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_FLASHEx_Erase
 <LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_FLASH_Unlock
 <LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_FLASH_Program
 <LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_FLASH_Lock
-<LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Flash_ReadNFCIDs
 </UL>
 <BR>[Called By]<UL><LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UnregisterNFC
 </UL>
@@ -1085,7 +1086,8 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;PCD_Request
 <LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;PCD_Anticoll
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UnregisterNFC
+<BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+<LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UnregisterNFC
 <LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RegisterNFC
 </UL>
 
@@ -1229,8 +1231,8 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f103xb.o(RESET)
 </UL>
-<P><STRONG><a name="[47]"></a>main</STRONG> (Thumb, 1424 bytes, Stack size 16 bytes, main.o(i.main))
-<BR><BR>[Stack]<UL><LI>Max Depth = 320<LI>Call Chain = main &rArr; UnregisterNFC &rArr; ReadNFCID &rArr; PCD_Anticoll &rArr; MFRC_CmdFrame &rArr; MFRC_SetBitMask &rArr; MFRC_ReadReg &rArr; SPI1_RW_Byte &rArr; HAL_SPI_TransmitReceive &rArr; SPI_EndRxTxTransaction &rArr; SPI_WaitFlagStateUntilTimeout
+<P><STRONG><a name="[47]"></a>main</STRONG> (Thumb, 1538 bytes, Stack size 48 bytes, main.o(i.main))
+<BR><BR>[Stack]<UL><LI>Max Depth = 352<LI>Call Chain = main &rArr; UnregisterNFC &rArr; ReadNFCID &rArr; PCD_Anticoll &rArr; MFRC_CmdFrame &rArr; MFRC_SetBitMask &rArr; MFRC_ReadReg &rArr; SPI1_RW_Byte &rArr; HAL_SPI_TransmitReceive &rArr; SPI_EndRxTxTransaction &rArr; SPI_WaitFlagStateUntilTimeout
 </UL>
 <BR>[Calls]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;welcome
 <LI><a href="#[ad]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UI_ShowPINSetting
@@ -1252,12 +1254,14 @@ Global Symbols
 <LI><a href="#[b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;KeyToDigit
 <LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Init
 <LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Delay
+<LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Flash_ReadNFCIDs
 <LI><a href="#[5e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Flash_Init
 <LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Beep_On
 <LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Beep_Off
 <LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UnregisterNFC
 <LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemClock_Config
 <LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RegisterNFC
+<LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ReadNFCID
 <LI><a href="#[53]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ClearPIN
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_entry_main
