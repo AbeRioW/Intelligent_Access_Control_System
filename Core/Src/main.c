@@ -62,6 +62,7 @@ typedef enum {
 SystemMode currentMode = MODE_MAIN;
 uint8_t nfcRetryCount = 0;
 uint8_t pinRetryCount = 0;
+uint8_t oldPinRetryCount = 0;
 uint8_t currentPin[4];
 uint8_t pinIndex = 0;
 uint8_t newPin[4];
@@ -163,6 +164,7 @@ int main(void)
                     isPinSettingMode = 1;
                     currentMode = MODE_PIN;
                     pinIndex = 0;
+                    oldPinRetryCount = 0;
                     memset(currentPin, 0, sizeof(currentPin));
                     OLED_ShowString(0, 0, (uint8_t*)"Enter Old PIN", 8, 1);
                     OLED_ShowString(0, 8, (uint8_t*)"Old PIN: ", 8, 1);
@@ -196,14 +198,28 @@ int main(void)
                                     UI_ShowPINSetting();
                                 } else {
                                     // 验证失败
-                                    OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
-                                    OLED_Refresh();
-                                    HAL_Delay(1000);
-                                    OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
-                                    OLED_Refresh();
-                                    currentMode = MODE_MAIN;
-                                    isPinSettingMode = 0;
-                                    ClearPIN();
+                                    oldPinRetryCount++;
+                                    if(oldPinRetryCount >= MAX_PIN_RETRY) {
+                                        OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
+                                        OLED_Refresh();
+                                        HAL_Delay(1000);
+                                        OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                                        OLED_Refresh();
+                                        currentMode = MODE_MAIN;
+                                        isPinSettingMode = 0;
+                                        oldPinRetryCount = 0;
+                                        ClearPIN();
+                                    } else {
+                                        OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
+                                        OLED_Refresh();
+                                        HAL_Delay(1000);
+                                        OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                                        OLED_Refresh();
+                                        pinIndex = 0;
+                                        memset(currentPin, 0, sizeof(currentPin));
+                                        OLED_ShowString(48, 8, (uint8_t*)"____", 8, 1);
+                                        OLED_Refresh();
+                                    }
                                 }
                             } else {
                                 // 验证PIN码
