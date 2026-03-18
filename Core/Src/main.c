@@ -418,13 +418,23 @@ void RegisterFingerprint(void)
                 pageID = 0;
                 found = 0;
                 
-                while(pageID < AS608_MAX_FINGER_NUM)
+                // 先检查指纹库是否为空
+                uint16_t score = 0;
+                uint16_t tempID = 0;
+                result = AS608_Search(AS608_BUFFER_CHAR1, 0, AS608_MAX_FINGER_NUM, &tempID, &score);
+                
+                if(result == AS608_ACK_NO_FOUND)
                 {
-                    // 尝试读取指定ID的指纹
-                    result = AS608_Empty(); // 先清空缓冲区
-                    if(result == AS608_ACK_OK)
+                    // 指纹库为空，直接使用ID 0
+                    pageID = 0;
+                    found = 1;
+                }
+                else
+                {
+                    // 指纹库不为空，逐个查找可用ID
+                    while(pageID < AS608_MAX_FINGER_NUM)
                     {
-                        // 尝试读取指定ID的指纹
+                        // 尝试加载指定ID的指纹
                         result = AS608_LoadChar(AS608_BUFFER_CHAR1, pageID);
                         if(result != AS608_ACK_OK)
                         {
@@ -432,15 +442,15 @@ void RegisterFingerprint(void)
                             found = 1;
                             break;
                         }
+                        pageID++;
                     }
-                    pageID++;
-                }
-                
-                if(!found)
-                {
-                    // 如果没找到可用ID，从0开始重新查找
-                    pageID = 0;
-                    found = 1;
+                    
+                    if(!found)
+                    {
+                        // 如果没找到可用ID，从0开始重新查找
+                        pageID = 0;
+                        found = 1;
+                    }
                 }
                 
                 // 显示找到的ID

@@ -38,13 +38,18 @@ compiling main.c...
   #endif /* __UI_H__ */
 ../App/beep_lay.h(10): warning:  #1-D: last line of file ends without a newline
   #endif /* __FLASH_H__ */
+../Core/Src/main.c(268): warning:  #546-D: transfer of control bypasses initialization of:
+            variable "score"  (declared at line 422)
+            variable "tempID"  (declared at line 423)
+          switch(processnum)
+          ^
 ../Core/Src/main.c(264): warning:  #177-D: variable "tempPageID"  was declared but never referenced
       uint16_t tempPageID = 0;
-../Core/Src/main.c: 6 warnings, 0 errors
+../Core/Src/main.c: 7 warnings, 0 errors
 linking...
-Program Size: Code=17580 RO-data=8064 RW-data=48 ZI-data=3232  
+Program Size: Code=17556 RO-data=8064 RW-data=48 ZI-data=3232  
 FromELF: creating hex file...
-"Intelligent_Access_Control_System\Intelligent_Access_Control_System.axf" - 0 Error(s), 6 Warning(s).
+"Intelligent_Access_Control_System\Intelligent_Access_Control_System.axf" - 0 Error(s), 7 Warning(s).
 
 <h2>Software Packages used:</h2>
 
