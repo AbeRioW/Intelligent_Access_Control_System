@@ -31,7 +31,6 @@
 #include "ui.h"
 #include <string.h>
 #include "beep_lay.h"
-#include "ui.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,7 +39,9 @@ typedef enum {
     MODE_MAIN,
     MODE_PIN,
     MODE_PIN_SETTING,
-    MODE_PIN_CONFIRM
+    MODE_PIN_CONFIRM,
+    MODE_NFC_REGISTER,
+    MODE_NFC_UNREGISTER
 } SystemMode;
 /* USER CODE END PTD */
 
@@ -78,6 +79,9 @@ void CheckPIN(void);
 void CheckPinSetting(void);
 void SaveNewPIN(void);
 uint8_t KeyToDigit(uint8_t key);
+uint32_t ReadNFCID(void);
+void RegisterNFC(void);
+void UnregisterNFC(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -99,6 +103,142 @@ void welcome_with_pin(uint8_t* pin) {
     OLED_ShowString(0, 16, (uint8_t*)pinStr, 8, 1);
     OLED_ShowString(0, 32, (uint8_t*)"Press KEY16 for PIN", 8, 1);
     OLED_Refresh();
+}
+
+// 读取NFC卡片ID
+// 返回值：卡片ID，0表示没有卡片靠近
+uint32_t ReadNFCID(void)
+{
+    uint8_t cardType[2];
+    uint8_t cardID[4];
+    char status;
+    
+    // 请求卡片
+    status = PCD_Request(PICC_REQIDL, cardType);
+    if(status != PCD_OK)
+    {
+        return 0; // 没有卡片靠近
+    }
+    
+    // 防碰撞，读取卡片ID
+    status = PCD_Anticoll(cardID);
+    if(status != PCD_OK)
+    {
+        return 0; // 读取卡片ID失败
+    }
+    
+    // 将4字节的卡片ID转换为32位整数
+    uint32_t nfcId = (cardID[0] << 24) | (cardID[1] << 16) | (cardID[2] << 8) | cardID[3];
+    
+    return nfcId;
+}
+
+// 注册NFC卡片
+void RegisterNFC(void)
+{
+    uint32_t nfcId = 0;
+    uint32_t startTime = HAL_GetTick();
+    uint32_t timeout = 10000; // 10秒超时
+    
+    // 等待用户放置卡片，最多等待10秒
+    while((HAL_GetTick() - startTime) < timeout)
+    {
+        nfcId = ReadNFCID();
+        if(nfcId != 0)
+        {
+            break; // 读取到卡片ID，退出循环
+        }
+        HAL_Delay(100); // 短暂延迟，避免频繁读取
+    }
+    
+    if(nfcId == 0)
+    {
+        // 超时，没有卡片靠近
+        OLED_ShowString(0, 24, (uint8_t*)"Timeout!", 8, 1);
+        OLED_Refresh();
+        HAL_Delay(1000);
+    } else {
+        // 尝试添加到FLASH
+        uint8_t result = Flash_AddNFCID(nfcId);
+        
+        if(result == 0)
+        {
+            // 注册成功
+            OLED_ShowString(0, 24, (uint8_t*)"Registered!", 8, 1);
+            OLED_Refresh();
+            HAL_Delay(1000);
+        } else if(result == 1)
+        {
+            // 已满
+            OLED_ShowString(0, 24, (uint8_t*)"Full!", 8, 1);
+            OLED_Refresh();
+            HAL_Delay(1000);
+        } else if(result == 2)
+        {
+            // 已存在
+            OLED_ShowString(0, 24, (uint8_t*)"Exists!", 8, 1);
+            OLED_Refresh();
+            HAL_Delay(1000);
+        }
+    }
+    
+    // 清除显示
+    OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+    OLED_Refresh();
+    
+    // 返回主页面
+    currentMode = MODE_MAIN;
+}
+
+// 注销NFC卡片
+void UnregisterNFC(void)
+{
+    uint32_t nfcId = 0;
+    uint32_t startTime = HAL_GetTick();
+    uint32_t timeout = 10000; // 10秒超时
+    
+    // 等待用户放置卡片，最多等待10秒
+    while((HAL_GetTick() - startTime) < timeout)
+    {
+        nfcId = ReadNFCID();
+        if(nfcId != 0)
+        {
+            break; // 读取到卡片ID，退出循环
+        }
+        HAL_Delay(100); // 短暂延迟，避免频繁读取
+    }
+    
+    if(nfcId == 0)
+    {
+        // 超时，没有卡片靠近
+        OLED_ShowString(0, 24, (uint8_t*)"Timeout!", 8, 1);
+        OLED_Refresh();
+        HAL_Delay(1000);
+    } else {
+        // 尝试从FLASH中删除
+        uint8_t result = Flash_RemoveNFCID(nfcId);
+        
+        if(result == 0)
+        {
+            // 注销成功
+            OLED_ShowString(0, 24, (uint8_t*)"Unregistered!", 8, 1);
+            OLED_Refresh();
+            HAL_Delay(1000);
+        } else if(result == 1)
+        {
+            // 未找到
+            OLED_ShowString(0, 24, (uint8_t*)"Not found!", 8, 1);
+            OLED_Refresh();
+            HAL_Delay(1000);
+        }
+    }
+    
+    // 清除显示
+    OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+    OLED_Refresh();
+    
+    // 返回主页面
+    currentMode = MODE_MAIN;
 }
 
 /* USER CODE END 0 */
@@ -172,6 +312,32 @@ int main(void)
                     OLED_ShowString(0, 16, (uint8_t*)"Enter 4-digit PIN", 8, 1);
                     OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
                     OLED_Refresh();
+                } else if(key == 13) {
+                    // 进入NFC注册模式
+                    isPinSettingMode = 2; // 标记为NFC注册模式
+                    currentMode = MODE_PIN;
+                    pinIndex = 0;
+                    oldPinRetryCount = 0;
+                    memset(currentPin, 0, sizeof(currentPin));
+                    OLED_ShowString(0, 0, (uint8_t*)"Enter PIN to Register", 8, 1);
+                    OLED_ShowString(0, 8, (uint8_t*)"PIN: ", 8, 1);
+                    OLED_ShowString(48, 8, (uint8_t*)"____", 8, 1);
+                    OLED_ShowString(0, 16, (uint8_t*)"Enter 4-digit PIN", 8, 1);
+                    OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                    OLED_Refresh();
+                } else if(key == 15) {
+                    // 进入NFC注销模式
+                    isPinSettingMode = 3; // 标记为NFC注销模式
+                    currentMode = MODE_PIN;
+                    pinIndex = 0;
+                    oldPinRetryCount = 0;
+                    memset(currentPin, 0, sizeof(currentPin));
+                    OLED_ShowString(0, 0, (uint8_t*)"Enter PIN to Unregister", 8, 1);
+                    OLED_ShowString(0, 8, (uint8_t*)"PIN: ", 8, 1);
+                    OLED_ShowString(48, 8, (uint8_t*)"____", 8, 1);
+                    OLED_ShowString(0, 16, (uint8_t*)"Enter 4-digit PIN", 8, 1);
+                    OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                    OLED_Refresh();
                 }
                 break;
             case MODE_PIN:
@@ -193,8 +359,8 @@ int main(void)
                         
                         // 4个数字输入完成
                         if(pinIndex == 4) {
-                            if(isPinSettingMode) {
-                                // 验证旧PIN码
+                            if(isPinSettingMode == 1) {
+                                // 验证旧PIN码（用于修改PIN）
                                 if(UI_CheckPinSetting(currentPin)) {
                                     // 验证成功，进入修改PIN码界面
                                     currentMode = MODE_PIN_SETTING;
@@ -227,8 +393,82 @@ int main(void)
                                         OLED_Refresh();
                                     }
                                 }
+                            } else if(isPinSettingMode == 2) {
+                                // 验证PIN码（用于NFC注册）
+                                if(UI_CheckPinSetting(currentPin)) {
+                                    // 验证成功，进入NFC注册模式
+                                    currentMode = MODE_NFC_REGISTER;
+                                    isPinSettingMode = 0;
+                                    OLED_ShowString(0, 0, (uint8_t*)"card to register", 8, 1);
+                                    OLED_ShowString(0, 8, (uint8_t*)"                    ", 8, 1);
+                                    OLED_ShowString(0, 16, (uint8_t*)"                    ", 8, 1);
+                                    OLED_ShowString(0, 24, (uint8_t*)"                    ", 8, 1);
+                                    OLED_Refresh();
+                                    RegisterNFC();
+                                } else {
+                                    // 验证失败
+                                    oldPinRetryCount++;
+                                    if(oldPinRetryCount >= MAX_PIN_RETRY) {
+                                        OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
+                                        OLED_Refresh();
+                                        HAL_Delay(1000);
+                                        OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                                        OLED_Refresh();
+                                        currentMode = MODE_MAIN;
+                                        isPinSettingMode = 0;
+                                        oldPinRetryCount = 0;
+                                        ClearPIN();
+                                    } else {
+                                        OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
+                                        OLED_Refresh();
+                                        HAL_Delay(1000);
+                                        OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                                        OLED_Refresh();
+                                        pinIndex = 0;
+                                        memset(currentPin, 0, sizeof(currentPin));
+                                        OLED_ShowString(48, 8, (uint8_t*)"____", 8, 1);
+                                        OLED_Refresh();
+                                    }
+                                }
+                            } else if(isPinSettingMode == 3) {
+                                // 验证PIN码（用于NFC注销）
+                                if(UI_CheckPinSetting(currentPin)) {
+                                    // 验证成功，进入NFC注销模式
+                                    currentMode = MODE_NFC_UNREGISTER;
+                                    isPinSettingMode = 0;
+                                    OLED_ShowString(0, 0, (uint8_t*)"card to unregister", 8, 1);
+                                    OLED_ShowString(0, 8, (uint8_t*)"                    ", 8, 1);
+                                    OLED_ShowString(0, 16, (uint8_t*)"                    ", 8, 1);
+                                    OLED_ShowString(0, 24, (uint8_t*)"                    ", 8, 1);
+                                    OLED_Refresh();
+                                    UnregisterNFC();
+                                } else {
+                                    // 验证失败
+                                    oldPinRetryCount++;
+                                    if(oldPinRetryCount >= MAX_PIN_RETRY) {
+                                        OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
+                                        OLED_Refresh();
+                                        HAL_Delay(1000);
+                                        OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                                        OLED_Refresh();
+                                        currentMode = MODE_MAIN;
+                                        isPinSettingMode = 0;
+                                        oldPinRetryCount = 0;
+                                        ClearPIN();
+                                    } else {
+                                        OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
+                                        OLED_Refresh();
+                                        HAL_Delay(1000);
+                                        OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                                        OLED_Refresh();
+                                        pinIndex = 0;
+                                        memset(currentPin, 0, sizeof(currentPin));
+                                        OLED_ShowString(48, 8, (uint8_t*)"____", 8, 1);
+                                        OLED_Refresh();
+                                    }
+                                }
                             } else {
-                                // 验证PIN码
+                                // 验证普通PIN码
                                 if(UI_CheckPIN(currentPin)) {
                                     Relay_On();
                                     OLED_ShowString(0, 24, (uint8_t*)"Success!", 8, 1);
@@ -271,8 +511,8 @@ int main(void)
                     // 重新输入
                     pinIndex = 0;
                     memset(currentPin, 0, sizeof(currentPin));
-                    if(isPinSettingMode) {
-                        // 旧PIN码输入，清除第2行
+                    if(isPinSettingMode == 1 || isPinSettingMode == 2 || isPinSettingMode == 3) {
+                        // 旧PIN码输入或NFC操作，清除第2行
                         OLED_ShowString(48, 8, (uint8_t*)"____", 8, 1);
                     } else {
                         // 普通PIN码输入，清除第3行
