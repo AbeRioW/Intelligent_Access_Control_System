@@ -513,6 +513,186 @@ cleanup:
     currentMode = MODE_MAIN;
 }
 
+void DeleteFingerprint(void)
+{
+    uint8_t result;
+    uint8_t processnum = 0;
+    uint8_t i = 0;
+    uint16_t fingerID = 0;
+    uint16_t score = 0;
+    
+    while(1)
+    {
+        switch(processnum)
+        {
+            case 0:
+                // 清除显示
+                OLED_ShowString(0, 0, (uint8_t*)"                ", 8, 1);
+                OLED_ShowString(0, 8, (uint8_t*)"                ", 8, 1);
+                OLED_ShowString(0, 16, (uint8_t*)"                ", 8, 1);
+                OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                OLED_Refresh();
+                HAL_Delay(500); // 增加延迟时间
+                
+                i++;
+                OLED_ShowString(0, 0, (uint8_t*)"Place finger", 8, 1);
+                OLED_ShowString(0, 8, (uint8_t*)"to delete", 8, 1);
+                OLED_ShowString(0, 16, (uint8_t*)"Scan finger", 8, 1);
+                OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                OLED_Refresh();
+                HAL_Delay(1000); // 增加延迟时间
+                
+                // 采集指纹图像
+                result = AS608_GetImage();
+                if(result == AS608_ACK_OK)
+                {
+                    // 生成特征
+                    result = AS608_GenChar(AS608_BUFFER_CHAR1);
+                    if(result == AS608_ACK_OK)
+                    {
+                        OLED_ShowString(0, 16, (uint8_t*)"Finger scanned!  ", 8, 1);
+                        OLED_Refresh();
+                        HAL_Delay(1500); // 增加延迟时间
+                        i = 0;
+                        processnum = 1; // 进入第二步
+                    }
+                    else
+                    {
+                        OLED_ShowString(0, 24, (uint8_t*)"Gen failed!      ", 8, 1);
+                        OLED_Refresh();
+                        HAL_Delay(2000); // 增加延迟时间
+                    }
+                }
+                else
+                {
+                    if(i % 5 == 0)
+                    {
+                        OLED_ShowString(0, 24, (uint8_t*)"No finger!       ", 8, 1);
+                        OLED_Refresh();
+                        HAL_Delay(1000); // 增加延迟时间
+                        OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                        OLED_Refresh();
+                    }
+                }
+                break;
+                
+            case 1:
+                // 搜索指纹
+                OLED_ShowString(0, 16, (uint8_t*)"Searching...     ", 8, 1);
+                OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                OLED_Refresh();
+                HAL_Delay(1000); // 增加延迟时间
+                
+                result = AS608_Search(AS608_BUFFER_CHAR1, 0, AS608_MAX_FINGER_NUM, &fingerID, &score);
+                if(result == AS608_ACK_OK)
+                {
+                    // 找到指纹，显示ID
+                    char id_str[16];
+                    sprintf(id_str, "Found ID:%d       ", fingerID);
+                    OLED_ShowString(0, 16, (uint8_t*)id_str, 8, 1);
+                    OLED_Refresh();
+                    HAL_Delay(1500); // 增加延迟时间
+                    processnum = 2; // 进入第三步
+                }
+                else if(result == AS608_ACK_NO_FOUND)
+                {
+                    OLED_ShowString(0, 24, (uint8_t*)"Not found!       ", 8, 1);
+                    OLED_Refresh();
+                    HAL_Delay(2000); // 增加延迟时间
+                    goto cleanup;
+                }
+                else
+                {
+                    OLED_ShowString(0, 24, (uint8_t*)"Search failed!   ", 8, 1);
+                    OLED_Refresh();
+                    HAL_Delay(2000); // 增加延迟时间
+                    goto cleanup;
+                }
+                break;
+                
+            case 2:
+                // 删除指纹
+                OLED_ShowString(0, 16, (uint8_t*)"Deleting...      ", 8, 1);
+                OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                OLED_Refresh();
+                HAL_Delay(1000); // 增加延迟时间
+                
+                result = AS608_DeleteChar(fingerID, 1);
+                if(result == AS608_ACK_OK)
+                {
+                    // 清除旧内容
+                    OLED_ShowString(0, 16, (uint8_t*)"                ", 8, 1);
+                    OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                    OLED_Refresh();
+                    
+                    // 显示删除成功信息
+                    OLED_ShowString(0, 0, (uint8_t*)"Deleted!         ", 8, 1);
+                    char id_str[16];
+                    sprintf(id_str, "ID:%d            ", fingerID);
+                    OLED_ShowString(0, 8, (uint8_t*)id_str, 8, 1);
+                    OLED_ShowString(0, 16, (uint8_t*)"Success!         ", 8, 1);
+                    OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
+                    OLED_Refresh();
+                    HAL_Delay(1000); // 增加延迟时间，确保用户能看到
+                    
+                    // 再次搜索指纹，确认删除成功
+                    OLED_ShowString(0, 16, (uint8_t*)"Verifying...     ", 8, 1);
+                    OLED_Refresh();
+                    HAL_Delay(1000);
+                    
+                    // 重新采集指纹图像
+                    result = AS608_GetImage();
+                    if(result == AS608_ACK_OK)
+                    {
+                        // 生成特征
+                        result = AS608_GenChar(AS608_BUFFER_CHAR1);
+                        if(result == AS608_ACK_OK)
+                        {
+                            // 搜索指纹
+                            uint16_t verifyID = 0;
+                            uint16_t verifyScore = 0;
+                            result = AS608_Search(AS608_BUFFER_CHAR1, 0, AS608_MAX_FINGER_NUM, &verifyID, &verifyScore);
+                            if(result == AS608_ACK_NO_FOUND)
+                            {
+                                OLED_ShowString(0, 16, (uint8_t*)"Delete confirmed!", 8, 1);
+                                OLED_Refresh();
+                                HAL_Delay(1500);
+                            }
+                            else
+                            {
+                                OLED_ShowString(0, 16, (uint8_t*)"Delete failed!   ", 8, 1);
+                                OLED_Refresh();
+                                HAL_Delay(1500);
+                            }
+                        }
+                    }
+                    
+                    goto cleanup;
+                }
+                else
+                {
+                    OLED_ShowString(0, 24, (uint8_t*)"Delete failed!   ", 8, 1);
+                    OLED_Refresh();
+                    HAL_Delay(2000); // 增加延迟时间
+                    goto cleanup;
+                }
+                break;
+        }
+        HAL_Delay(100);
+    }
+
+cleanup:
+    // 完全清除OLED屏幕
+    OLED_Clear();
+    OLED_Refresh();
+    
+    // 重新绘制主页面内容（welcome页面）
+    welcome();
+    
+    // 返回主页面
+    currentMode = MODE_MAIN;
+}
+
 // 注销指纹
 void UnregisterFingerprint(void)
 {
@@ -779,14 +959,15 @@ int main(void)
                     OLED_ShowString(48, 16, (uint8_t*)"____", 8, 1);
                     OLED_ShowString(0, 24, (uint8_t*)"Enter 4-digit PIN", 8, 1);
                     OLED_Refresh();
+
                 } else if(key == 12) {
-                    // 进入指纹注销模式
-                    isPinSettingMode = 5; // 标记为指纹注销模式
+                    // 进入指纹删除模式
+                    isPinSettingMode = 5; // 标记为指纹删除模式
                     currentMode = MODE_PIN;
                     pinIndex = 0;
                     oldPinRetryCount = 0;
                     memset(currentPin, 0, sizeof(currentPin));
-                    OLED_ShowString(0, 0, (uint8_t*)"Enter PIN to Unregister", 8, 1);
+                    OLED_ShowString(0, 0, (uint8_t*)"Enter PIN to Delete", 8, 1);
                     OLED_ShowString(0, 8, (uint8_t*)"Fingerprint", 8, 1);
                     OLED_ShowString(0, 16, (uint8_t*)"PIN: ", 8, 1);
                     OLED_ShowString(48, 16, (uint8_t*)"____", 8, 1);
@@ -962,17 +1143,20 @@ int main(void)
                                     }
                                 }
                             } else if(isPinSettingMode == 5) {
-                                // 验证PIN码（用于指纹注销）
+                                // 验证PIN码（用于指纹删除）
                                 if(UI_CheckPinSetting(currentPin)) {
-                                    // 验证成功，进入指纹注销模式
+                                    // 验证成功，进入指纹删除模式
                                     currentMode = MODE_FINGER_UNREGISTER;
                                     isPinSettingMode = 0;
-                                    OLED_ShowString(0, 0, (uint8_t*)"Fingerprint", 8, 1);
+                                    // 完全清除OLED屏幕
+                                    OLED_Clear();
+                                    OLED_Refresh();
+                                    OLED_ShowString(0, 0, (uint8_t*)"Delete Fingerprint", 8, 1);
                                     OLED_ShowString(0, 8, (uint8_t*)"                ", 8, 1);
                                     OLED_ShowString(0, 16, (uint8_t*)"                ", 8, 1);
                                     OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
                                     OLED_Refresh();
-                                    UnregisterFingerprint();
+                                    DeleteFingerprint();
                                 } else {
                                     // 验证失败
                                     oldPinRetryCount++;
@@ -998,6 +1182,7 @@ int main(void)
                                         OLED_Refresh();
                                     }
                                 }
+
                             } else {
                                 // 验证普通PIN码
                                 if(UI_CheckPIN(currentPin)) {
