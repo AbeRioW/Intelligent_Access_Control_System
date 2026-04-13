@@ -853,6 +853,8 @@ int main(void)
             }
             
             if(found) {
+                // 卡片已注册，重置失败计数
+                nfcRetryCount = 0;
                 // 卡片已注册，拉高LAY
                 Relay_On();
                 OLED_ShowString(0, 24, (uint8_t*)"Success!", 8, 1);
@@ -862,6 +864,26 @@ int main(void)
                 Relay_Off();
                 OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
                 OLED_Refresh();
+            } else {
+                // 卡片未注册，增加失败计数
+                nfcRetryCount++;
+                // 显示错误信息
+                OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
+                OLED_Refresh();
+                HAL_Delay(1000);
+                OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+                OLED_Refresh();
+                if(nfcRetryCount >= MAX_PIN_RETRY) {
+                    // 失败3次，拉低BEEP 5秒后关闭
+                    Beep_On();
+                    OLED_ShowString(0, 24, (uint8_t*)"Alarm!", 8, 1);
+                    OLED_Refresh();
+                    HAL_Delay(5000); // 5秒
+                    Beep_Off();
+                    OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+                    OLED_Refresh();
+                    nfcRetryCount = 0;
+                }
             }
         }
         
