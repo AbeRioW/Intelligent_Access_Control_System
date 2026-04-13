@@ -1355,6 +1355,11 @@ int main(void)
                             
                             OLED_ShowString(0, 24, (uint8_t*)"                ", 8, 1);
                             OLED_Refresh();
+                            // 完全清除OLED屏幕
+                            OLED_Clear();
+                            OLED_Refresh();
+                            // 重新绘制主页面内容（welcome页面）
+                            welcome();
                             currentMode = MODE_MAIN;
                             isPinSettingMode = 0;
                             ClearPIN();
