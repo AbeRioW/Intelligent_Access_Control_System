@@ -27,6 +27,7 @@ intelligent_access_control_system\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/st
 intelligent_access_control_system\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
 intelligent_access_control_system\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h
 intelligent_access_control_system\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+intelligent_access_control_system\main.o: ../Core/Inc/dma.h
 intelligent_access_control_system\main.o: ../Core/Inc/spi.h
 intelligent_access_control_system\main.o: ../Core/Inc/usart.h
 intelligent_access_control_system\main.o: ../Core/Inc/gpio.h
@@ -39,3 +40,5 @@ intelligent_access_control_system\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\st
 intelligent_access_control_system\main.o: ../App/beep_lay.h
 intelligent_access_control_system\main.o: ../App/AS608.h
 intelligent_access_control_system\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+intelligent_access_control_system\main.o: ../App/esp8266.h
+intelligent_access_control_system\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h

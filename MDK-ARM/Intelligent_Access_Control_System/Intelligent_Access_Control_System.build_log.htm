@@ -27,31 +27,22 @@ Project File Date:  04/13/2026
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Intelligent_Access_Control_System'
-compiling main.c...
-../App/Matrix_Keyboard.h(11): warning:  #1-D: last line of file ends without a newline
-  #endif /* __MATRIX_KEYBOARD_H__ */
-../App/RC522.h(151): warning:  #1-D: last line of file ends without a newline
-  #endif
-../App/flash.h(7): warning:  #47-D: incompatible redefinition of macro "FLASH_PAGE_SIZE"  (declared at line 241 of "../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h")
-  #define FLASH_PAGE_SIZE      0x400  // 1KB per page
-../App/ui.h(15): warning:  #1-D: last line of file ends without a newline
-  #endif /* __UI_H__ */
-../App/beep_lay.h(10): warning:  #1-D: last line of file ends without a newline
+compiling esp8266.c...
+..\App\esp8266.h(54): warning:  #1-D: last line of file ends without a newline
+  #endif /* __ESP8266_H */
+..\App\beep_lay.h(10): warning:  #1-D: last line of file ends without a newline
   #endif /* __FLASH_H__ */
-../Core/Src/main.c(269): warning:  #546-D: transfer of control bypasses initialization of:
-            variable "score"  (declared at line 423)
-            variable "tempID"  (declared at line 424)
-          switch(processnum)
-          ^
-../Core/Src/main.c(265): warning:  #177-D: variable "tempPageID"  was declared but never referenced
-      uint16_t tempPageID = 0;
-../Core/Src/main.c(680): warning:  #111-D: statement is unreachable
-                  break;
-../Core/Src/main.c: 8 warnings, 0 errors
+..\App\esp8266.c(306): warning:  #550-D: variable "got_response"  was set but never used
+          bool got_response = false;
+..\App\esp8266.c(676): warning:  #1-D: last line of file ends without a newline
+  //}
+..\App\esp8266.c(22): warning:  #177-D: function "ESP8266_WaitForStr"  was declared but never referenced
+  static bool ESP8266_WaitForStr(const char *str, uint32_t timeout_ms)
+..\App\esp8266.c: 5 warnings, 0 errors
 linking...
-Program Size: Code=18580 RO-data=8064 RW-data=48 ZI-data=3232  
+Program Size: Code=23580 RO-data=8188 RW-data=52 ZI-data=3956  
 FromELF: creating hex file...
-"Intelligent_Access_Control_System\Intelligent_Access_Control_System.axf" - 0 Error(s), 8 Warning(s).
+"Intelligent_Access_Control_System\Intelligent_Access_Control_System.axf" - 0 Error(s), 5 Warning(s).
 
 <h2>Software Packages used:</h2>
 

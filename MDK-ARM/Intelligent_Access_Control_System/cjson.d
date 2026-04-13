@@ -1,0 +1,10 @@
+intelligent_access_control_system\cjson.o: ..\App\cJSON.c
+intelligent_access_control_system\cjson.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+intelligent_access_control_system\cjson.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+intelligent_access_control_system\cjson.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
+intelligent_access_control_system\cjson.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+intelligent_access_control_system\cjson.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+intelligent_access_control_system\cjson.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\ctype.h
+intelligent_access_control_system\cjson.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\float.h
+intelligent_access_control_system\cjson.o: ..\App\cJSON.h
+intelligent_access_control_system\cjson.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
