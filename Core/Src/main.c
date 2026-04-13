@@ -67,6 +67,7 @@ SystemMode currentMode = MODE_MAIN;
 uint8_t nfcRetryCount = 0;
 uint8_t pinRetryCount = 0;
 uint8_t oldPinRetryCount = 0;
+uint8_t fingerRetryCount = 0;
 uint8_t currentPin[4];
 uint8_t pinIndex = 0;
 uint8_t newPin[4];
@@ -876,8 +877,10 @@ int main(void)
             uint16_t score = 0;
             uint8_t fingerResult = AS608_VerifyFinger(&fingerID, &score);
             
-            // 只处理成功的情况，忽略其他情况（如无指纹）
+            // 处理指纹验证结果
             if(fingerResult == AS608_ACK_OK) {
+                // 指纹验证成功，重置失败计数
+                fingerRetryCount = 0;
                 // 指纹已注册，拉高LAY
                 Relay_On();
                 OLED_ShowString(0, 24, (uint8_t*)"Success!", 8, 1);
@@ -890,9 +893,45 @@ int main(void)
             } else if(fingerResult == AS608_ACK_NO_FINGER) {
                 // 无指纹，不显示任何信息
             } else if(fingerResult == AS608_ACK_NO_FOUND) {
-                // 指纹未找到，不显示任何信息
+                // 指纹未找到，增加失败计数
+                fingerRetryCount++;
+                // 显示错误信息
+                OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
+                OLED_Refresh();
+                HAL_Delay(1000);
+                OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+                OLED_Refresh();
+                if(fingerRetryCount >= MAX_PIN_RETRY) {
+                    // 失败3次，拉低BEEP 5秒后关闭
+                    Beep_On();
+                    OLED_ShowString(0, 24, (uint8_t*)"Alarm!", 8, 1);
+                    OLED_Refresh();
+                    HAL_Delay(5000); // 5秒
+                    Beep_Off();
+                    OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+                    OLED_Refresh();
+                    fingerRetryCount = 0;
+                }
             } else {
-                // 其他错误，不显示任何信息
+                // 其他错误，增加失败计数
+                fingerRetryCount++;
+                // 显示错误信息
+                OLED_ShowString(0, 24, (uint8_t*)"Error!", 8, 1);
+                OLED_Refresh();
+                HAL_Delay(1000);
+                OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+                OLED_Refresh();
+                if(fingerRetryCount >= MAX_PIN_RETRY) {
+                    // 失败3次，拉低BEEP 5秒后关闭
+                    Beep_On();
+                    OLED_ShowString(0, 24, (uint8_t*)"Alarm!", 8, 1);
+                    OLED_Refresh();
+                    HAL_Delay(5000); // 5秒
+                    Beep_Off();
+                    OLED_ShowString(0, 24, (uint8_t*)"        ", 8, 1);
+                    OLED_Refresh();
+                    fingerRetryCount = 0;
+                }
             }
         }
     }
